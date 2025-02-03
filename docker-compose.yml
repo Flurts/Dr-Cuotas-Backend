@@ -1,0 +1,30 @@
+version: "3.8" # Versión de Docker Compose que se utilizará.
+
+services:
+  db: # Definición del servicio de la base de datos PostgreSQL.
+    image: postgres:latest # Imagen de Docker utilizada para crear el contenedor, en este caso, la última versión de PostgreSQL.
+    restart: always # Configuración para reiniciar el contenedor siempre que Docker o el sistema operativo se reinicien.
+    environment:
+      - POSTGRES_USER=postgres # Nombre de usuario para la base de datos PostgreSQL.
+      - POSTGRES_PASSWORD=postgres # Contraseña del usuario de la base de datos PostgreSQL.
+    ports:
+      - "5432:5432" # Mapeo del puerto 5432 del contenedor al puerto 5432 del host.
+    volumes:
+      - db:/var/lib/postgresql/data # Montaje de un volumen para persistir los datos de la base de datos en el directorio /var/lib/postgresql/data dentro del contenedor.
+
+  pgadmin: # Definición del servicio pgAdmin.
+    image: dpage/pgadmin4 # Imagen de Docker utilizada para crear el contenedor, que es la imagen oficial de pgAdmin 4.
+    container_name: pgadmin # Nombre del contenedor.
+    restart: always # Configuración para reiniciar el contenedor siempre que Docker o el sistema operativo se reinicien.
+    ports:
+      - "5050:80" # Mapeo del puerto 5050 del contenedor al puerto 80 del host.
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=wilsonparada@gmail.com # Correo electrónico predeterminado para la cuenta de administrador en pgAdmin.
+      - PGADMIN_DEFAULT_PASSWORD=wilsonparada # Contraseña predeterminada para la cuenta de administrador en pgAdmin.
+
+volumes:
+  db: # Definición de un volumen llamado "db".
+    driver: local # Tipo de driver de volumen local.
+
+  cache: # Definición de un volumen llamado "cache".
+    driver: local # Tipo de driver de volumen local.

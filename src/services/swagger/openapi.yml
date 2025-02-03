@@ -1,0 +1,81 @@
+openapi: 3.0.0
+info:
+  title: Mi API
+  version: 1.0.0
+paths:
+  '/':
+    get:
+      summary: Devuelve el estado del servidor
+      description: Devuelve el estado del servidor junto con la fecha y hora actuales.
+      tags:
+        - health
+      responses:
+        '200':
+          description: Respuesta exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Estado del servidor
+                    example: ON
+                  time:
+                    type: string
+                    format: date-time
+                    description: Fecha y hora en formato UTC
+                    example: "Tue, 12 Mar 2024 12:00:00 GMT"
+                  date:
+                    type: string
+                    format: date-time
+                    description: Fecha y hora en formato ISO
+                    example: "2024-03-12T12:00:00.000Z"
+        '500':
+          description: Error interno del servidor
+  '/graphql':
+    post:
+      summary: Endpoint GraphQL
+      description: Punto de entrada para realizar consultas GraphQL.
+      tags:
+        - graphql
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+                  description: Consulta GraphQL
+                  example: |
+                    query {
+                      users {
+                        id
+                        name
+                      }
+                    }
+                variables:
+                  type: object
+                  description: Variables de la consulta GraphQL
+                  example: |
+                    {
+                      "userId": "123"
+                    }
+                operationName:
+                  type: string
+                  description: Nombre de la operación GraphQL
+                  example: "GetUsers"
+      responses:
+        '200':
+          description: Respuesta exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Respuesta GraphQL
+        '400':
+          description: Error de solicitud
+        '500':
+          description: Error interno del servidor

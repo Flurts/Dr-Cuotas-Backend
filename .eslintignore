@@ -1,0 +1,2 @@
+# Ignorar todo en la carpeta "migrations"
+src/databases/postgresql/migrations/*
