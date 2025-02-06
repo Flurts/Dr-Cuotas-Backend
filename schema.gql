@@ -19,6 +19,8 @@ type Adjudicated {
   start_date_payment: DateTimeISO
   status: Status
   surgery: Surgery
+  totalPaid: Float
+  totalPaidSum: Float
   total_price: Float
   updated_at: DateTimeISO
   user: User
@@ -133,6 +135,7 @@ type PresignedUrlResponse {
 }
 
 type Query {
+  getAdjudicatedByDoctor(doctorId: String!, status: Adjudicated_Status!): [Adjudicated!]!
   getAdjudicatedById(adjudicatedId: String!): Adjudicated
   getAdjudicatedByMonthAndYear(limit: Float = 7, month: Float!, offset: Float = 0, year: Float!): [Adjudicated!]!
   getAdjudicatedByStatus(status: String!): [Adjudicated!]!
@@ -142,12 +145,14 @@ type Query {
   getDoctor(doctorId: String!): DoctorBasicData!
   getDoctorFilter(limit: Int, offset: Int): [Doctor!]!
   getDoctorsByName(limit: Int, name: String!, offset: Int): [Doctor!]!
+  getEarningsByDoctor(doctorId: String!): [Adjudicated!]!
   getMyAdjudicated: [Adjudicated!]!
   getMySurgeries: [Surgery!]!
   getSurgerieById(id: String!): Surgery!
   getSurgeriesDoctorById(doctorId: String!): [Surgery!]!
   getSurgeryStatus(status: String!): [Surgery!]!
   getUserData: UserDataResponseSingInUp!
+  getUserLottery: [Adjudicated!]!
   ping: String!
 }
 

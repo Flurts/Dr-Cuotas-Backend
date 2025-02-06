@@ -47,8 +47,8 @@ export const createNewSurgerie = async (surgery: SurgeryInput, ctx: Context): Pr
     const newFile = FileRepository.create({
       file_name: user.doctor.id,
       file_type: File_Type.SURGERY_PHOTOS,
-      file_link: surgery.surgeryImageLocation,
-      file_key: surgery.surgeryImageKey
+      file_link: surgery.surgeryImageLocation ?? "",
+      file_key: surgery.surgeryImageKey ?? ""
     });
     await FileRepository.save(newFile);
 

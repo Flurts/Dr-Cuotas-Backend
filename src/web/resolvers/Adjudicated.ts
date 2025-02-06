@@ -1,11 +1,17 @@
 import { Context } from "@/utils/constants";
 import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from "type-graphql";
-import { subscribeSurgerie } from "@services/Adjudicated";
+import {
+  subscribeSurgerie,
+  getAllAdjudicated,
+  getAdjudicatedByDoctor,
+  getEarningsByDoctor,
+  getUserLottery
+} from "@services/Adjudicated";
 import { AdjudicatedRepository, DoctorRepository } from "@/databases/postgresql/repos";
 import { Adjudicated } from "@/databases/postgresql/entities/models";
 import { Adjudicated_Status, Status } from "@/utils/constants/status.enum";
 import { Between } from "typeorm";
-import { addMonths, addDays } from "date-fns";
+import { addMonths } from "date-fns";
 
 @Resolver()
 class AdjudicatedResolver {
@@ -83,8 +89,8 @@ class AdjudicatedResolver {
 
     const adjudicated = await AdjudicatedRepository.findOne({
       where: { id: adjudicatedId },
-      select: ["id", "doctor", "surgery"],
-      relations: ["doctor"]
+      select: ["id"], // No es necesario incluir 'doctor' y 'surgery' aquí porque ya están en relations
+      relations: ["doctor", "surgery"] // Agrega la relación con surgery
     });
 
     if (!adjudicated?.doctor) {
@@ -96,15 +102,18 @@ class AdjudicatedResolver {
     }
 
     const today = new Date();
-    const startDatePayment = addMonths(today, 1); // Fecha de inicio de pago, un mes a partir de hoy
-    const endDatePayment = addDays(startDatePayment, 5); // Fecha de fin de pago, cinco días después del inicio de pago
+    const startDatePayment = addMonths(today, 1);
+    const endDatePayment = addMonths(startDatePayment, quotasNumber);
+
+    const totalPrice = adjudicated.surgery?.amount ?? 0;
+    const quotaPrice = quotasNumber > 0 ? Math.ceil(totalPrice / quotasNumber) : 0;
 
     await AdjudicatedRepository.update(adjudicatedId, {
       quotas_number: quotasNumber,
       quotas_paid: 0,
       adjudicated_status: Adjudicated_Status.Active,
-      quota_price: (adjudicated.total_price ?? 0) / quotasNumber,
       total_price: adjudicated.surgery?.amount ?? 0,
+      quota_price: quotaPrice,
       start_date_payment: startDatePayment,
       end_date_payment: endDatePayment
     });
@@ -115,8 +124,9 @@ class AdjudicatedResolver {
   @Authorized()
   @Query(() => [Adjudicated])
   async getAllAdjudicated(@Ctx() ctx: Context): Promise<Adjudicated[]> {
-    const adjudicatedList = await AdjudicatedRepository.find();
-    return adjudicatedList;
+    const response = await getAllAdjudicated(ctx);
+    console.log(response);
+    return response;
   }
 
   @Authorized()
@@ -150,6 +160,28 @@ class AdjudicatedResolver {
     });
 
     return adjudicatedList;
+  }
+
+  @Authorized()
+  @Query(() => [Adjudicated])
+  async getAdjudicatedByDoctor(
+    @Arg("doctorId") doctorId: string,
+    @Arg("status", () => Adjudicated_Status) status: Adjudicated_Status,
+    @Ctx() ctx: Context
+  ) {
+    const response = await getAdjudicatedByDoctor(doctorId, status, ctx);
+    return response;
+  }
+
+  @Authorized()
+  @Query(() => [Adjudicated])
+  async getEarningsByDoctor(
+    @Arg("doctorId") doctorId: string,
+
+    @Ctx() ctx: Context
+  ) {
+    const response = await getEarningsByDoctor(doctorId, ctx);
+    return response;
   }
 
   @Authorized()
@@ -206,6 +238,12 @@ class AdjudicatedResolver {
     });
 
     return adjudicatedList;
+  }
+
+  @Authorized()
+  @Query(() => [Adjudicated])
+  async getUserLottery(@Ctx() ctx: Context): Promise<Adjudicated[]> {
+    return await getUserLottery(ctx);
   }
 }
 
