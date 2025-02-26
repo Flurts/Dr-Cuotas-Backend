@@ -4,42 +4,50 @@ import { verifyJwt } from "@/services/JWT/jose";
 
 // Define la función authChecker
 const customAuthChecker: AuthChecker<Context> = async ({ context }, roles) => {
-  // Verifica si hay un usuario autenticado en el contexto
   const req: Express.Request = context.req;
 
-  // Obtener el JWT del encabezado de autorización
   // @ts-expect-error Ignorar el error de tipo de TS
   const authorizationHeader = req.headers.authorization;
 
   if (!authorizationHeader) {
-    // Si no se proporciona JWT en el encabezado de autorización, devuelve false
     return false;
   }
 
-  // Extraer el token JWT de la cabecera de autorización
-  const [token] = authorizationHeader.split(" "); // Se asume que el token está en el formato "Bearer <token>"
+  const [token] = authorizationHeader.split(" ");
 
   try {
-    // Verificar y decodificar el token JWT
     const decodedToken = await verifyJwt(token);
 
     if (!decodedToken) {
-      // Si el token no es válido, devuelve false
       return false;
     }
 
     const payload = decodedToken.payload;
+    const userRole = payload.role as string;
 
-    // Agregar la información del usuario al contexto
+    console.log("🔍 Debug información:");
+    console.log("- Roles requeridos:", roles);
+    console.log("- Rol del usuario:", userRole);
+    console.log("- Payload completo:", payload);
+
+    // Guardar información del usuario en el contexto
     context.auth = {
-      userId: payload.userId as string, // Suponiendo que el token tiene una propiedad 'userId'
-      sub: payload.sub! // Suponiendo que el token tiene una propiedad 'sub' para el email del usuario
+      userId: payload.userId as string,
+      sub: payload.sub!,
+      role: payload.role as string
     };
 
-    // Devuelve true indicando que el usuario está autenticado
-    return true;
+    // Si no hay roles requeridos (@Authorized()), solo verificamos que el token sea válido
+    if (roles.length === 0) {
+      return true;
+    }
+
+    // Si hay roles específicos (@Authorized("Admin")), verificamos que el usuario tenga el rol requerido
+    const hasRequiredRole = roles.includes(userRole);
+    console.log("🔒 Tiene el rol requerido?:", hasRequiredRole);
+
+    return hasRequiredRole;
   } catch (error) {
-    // Si ocurre algún error al verificar el token JWT, devuelve false
     return false;
   }
 };

@@ -42,7 +42,8 @@ export const login = async (
   const jwt = await generateJwt(
     {
       userId: user.id,
-      sub: (user.email ?? user.phone_number)!
+      sub: (user.email ?? user.phone_number)!,
+      role: user.role
     },
     config.jwt.AT_EXPIRE_HR
   );
@@ -83,7 +84,8 @@ export const register = async (
     const jwt = await generateJwt(
       {
         userId: newUser.id,
-        sub: (newUser.email ?? newUser.phone_number)!
+        sub: (newUser.email ?? newUser.phone_number)!,
+        role: newUser.role
       },
       config.jwt.AT_EXPIRE_HR
     );
@@ -157,7 +159,8 @@ export const loginWithGoogleToken = async (token: string): Promise<UserDataRespo
     const jwt = await generateJwt(
       {
         userId: user.id,
-        sub: (user.email ?? user.phone_number)!
+        sub: (user.email ?? user.phone_number)!,
+        role: user.role
       },
       config.jwt.AT_EXPIRE_HR
     );
@@ -186,7 +189,8 @@ export const getUserData = async (userId: string): Promise<UserDataResponseSingI
   const jwt = await generateJwt(
     {
       userId: user.id,
-      sub: (user.email ?? user.phone_number)!
+      sub: (user.email ?? user.phone_number)!,
+      role: user.role
     },
     config.jwt.AT_EXPIRE_HR
   );

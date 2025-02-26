@@ -7,3 +7,5 @@ export * from "./Adjudicated";
 export * from "./Payment";
 export * from "./Payment_Method";
 export * from "./Social_Media";
+export * from "./Ad";
+export * from "./SurgeryDoctor";

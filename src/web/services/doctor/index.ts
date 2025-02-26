@@ -88,6 +88,7 @@ export const getDoctorById = async (doctorId: string): Promise<DoctorBasicData> 
 export const getDoctorFilter = async (filter: {
   limit: number;
   offset: number;
+  status: Status;
 }): Promise<Doctor[]> => {
   try {
     const doctors = await DoctorRepository.find({

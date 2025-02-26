@@ -8,6 +8,8 @@ import Payment_Method from "./Payment_Method";
 import File_DB from "./File";
 import Social_Media from "./Social_Media";
 import Doctor_Applications from "./Doctor_Applications";
+import ad from "./ad";
+import SurgeryDoctor from "./SurgeryDoctor";
 
 export {
   User,
@@ -19,7 +21,9 @@ export {
   Payment_Method,
   File_DB,
   Social_Media,
-  Doctor_Applications
+  Doctor_Applications,
+  ad,
+  SurgeryDoctor
 };
 
 export const models = [
@@ -32,5 +36,7 @@ export const models = [
   Payment_Method,
   File_DB,
   Social_Media,
-  Doctor_Applications
+  Doctor_Applications,
+  ad,
+  SurgeryDoctor
 ];

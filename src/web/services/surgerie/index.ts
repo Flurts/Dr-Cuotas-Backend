@@ -1,4 +1,9 @@
-import { FileRepository, SurgeryRepository, UserRepository } from "@/databases/postgresql/repos";
+import {
+  FileRepository,
+  SurgeryRepository,
+  UserRepository,
+  SurgeryDoctorRepository
+} from "@/databases/postgresql/repos";
 import { Context } from "@/utils/constants";
 import { Status } from "@/utils/constants/status.enum";
 import AwsS3Service from "@/services/AWS/s3";
@@ -35,15 +40,17 @@ export const generatePresignedUrlImageSurgery = async (
 
 export const createNewSurgerie = async (surgery: SurgeryInput, ctx: Context): Promise<boolean> => {
   try {
+    // Buscar el usuario y validar si es doctor
     const user = await UserRepository.findOne({
       where: { id: ctx.auth.userId },
       relations: ["doctor"]
     });
 
-    if (!user?.doctor?.id) {
+    if (!user?.doctor) {
       throw new Error("User is not a doctor");
     }
 
+    // Crear el archivo asociado a la cirugía
     const newFile = FileRepository.create({
       file_name: user.doctor.id,
       file_type: File_Type.SURGERY_PHOTOS,
@@ -52,17 +59,24 @@ export const createNewSurgerie = async (surgery: SurgeryInput, ctx: Context): Pr
     });
     await FileRepository.save(newFile);
 
-    const newSurgerie = await SurgeryRepository.create({
+    // Crear la cirugía
+    const newSurgerie = SurgeryRepository.create({
       name: surgery.name,
       description: surgery.description,
       amount: surgery.amount,
-      type: SurgeryTypes[surgery.type as unknown as keyof typeof SurgeryTypes],
-      category: SurgeryCategories[surgery.category as string as keyof typeof SurgeryCategories],
+      type: SurgeryTypes[surgery.type as keyof typeof SurgeryTypes],
+      category: SurgeryCategories[surgery.category as keyof typeof SurgeryCategories],
       status: surgery.status,
-      doctor: user.doctor,
       file_banner: newFile
     });
     await SurgeryRepository.save(newSurgerie);
+
+    // Relacionar la cirugía con el doctor
+    const surgeryDoctor = SurgeryDoctorRepository.create({
+      doctor: user.doctor,
+      surgery: newSurgerie
+    });
+    await SurgeryDoctorRepository.save(surgeryDoctor);
 
     return true;
   } catch (error) {
@@ -129,15 +143,26 @@ export const deleteSurgerie = async (surgery: SurgeryInput, ctx: Context): Promi
   }
 
   const deletedSurgerie = await SurgeryRepository.findOne({
-    where: { id: surgery.id, doctor: user.doctor }
+    where: { id: surgery.id },
+    relations: ["doctors"]
   });
 
   if (!deletedSurgerie) {
     return false;
   }
 
-  await SurgeryRepository.update(deletedSurgerie.id, { status: Status.Inactive });
-  await SurgeryRepository.softDelete(deletedSurgerie.id);
+  // Verifica si el doctor tiene relación con la cirugía
+  const isDoctorInSurgery = deletedSurgerie.doctors.some((doc) => doc.id === user.doctor!.id);
+
+  if (!isDoctorInSurgery) {
+    return false;
+  }
+
+  // Elimina la relación en la tabla intermedia
+  await SurgeryDoctorRepository.delete({ surgery: { id: surgery.id } });
+
+  // Elimina la cirugía (soft delete)
+  await SurgeryRepository.softRemove(deletedSurgerie);
 
   return true;
 };

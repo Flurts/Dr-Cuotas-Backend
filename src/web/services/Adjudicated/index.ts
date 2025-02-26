@@ -20,29 +20,27 @@ export const subscribeSurgerie = async (
 ): Promise<boolean> => {
   const user = await UserRepository.findOne({
     where: { id: ctx.auth.userId },
-    relations: {
-      adjudicated: true
-    },
+    relations: { adjudicated: true },
     select: {
       adjudicated: {
-        id: true
+        id: true,
+        status: true,
+        adjudicated_status: true
       },
       id: true
     }
   });
 
-  if (!user) {
-    return false;
-  }
+  if (!user) return false;
 
   if (
-    user.adjudicated.length > 0 &&
     user.adjudicated.some(
       (adjudicated) =>
-        (adjudicated.id === surgerieId && adjudicated.status === Status.Active) ||
-        adjudicated.adjudicated_status === Adjudicated_Status.Validating ||
-        adjudicated.adjudicated_status === Adjudicated_Status.Active ||
-        adjudicated.adjudicated_status === Adjudicated_Status.Blocked
+        adjudicated.surgery?.id === surgerieId &&
+        (adjudicated.status === Status.Active ||
+          adjudicated.adjudicated_status === Adjudicated_Status.Validating ||
+          adjudicated.adjudicated_status === Adjudicated_Status.Active ||
+          adjudicated.adjudicated_status === Adjudicated_Status.Blocked)
     )
   ) {
     return false;
@@ -50,22 +48,21 @@ export const subscribeSurgerie = async (
 
   const subscribedSurgerie = await SurgeryRepository.findOne({
     where: { id: surgerieId, status: Status.Active },
-    relations: {
-      doctor: true
-    }
+    relations: ["doctors"]
   });
 
-  if (!subscribedSurgerie) {
-    return false;
-  }
+  if (!subscribedSurgerie) return false;
 
-  const newAdjudicated = await AdjudicatedRepository.create({
+  const assignedDoctor =
+    subscribedSurgerie.doctors.length > 0 ? subscribedSurgerie.doctors[0] : undefined;
+
+  const newAdjudicated = AdjudicatedRepository.create({
     comments: coments,
     status: Status.Active,
     adjudicated_status: Adjudicated_Status.Validating,
     user,
-    doctor: subscribedSurgerie.doctor,
-    surgery: subscribedSurgerie
+    surgery: subscribedSurgerie,
+    ...(assignedDoctor && { doctor: assignedDoctor }) // Solo asigna si existe un doctor
   });
 
   await AdjudicatedRepository.save(newAdjudicated);

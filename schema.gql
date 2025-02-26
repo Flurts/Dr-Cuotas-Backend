@@ -3,6 +3,15 @@
 # !!!   DO NOT MODIFY THIS FILE BY YOURSELF   !!!
 # -----------------------------------------------
 
+type AD {
+  created_at: DateTimeISO
+  deleted_at: DateTimeISO
+  id: ID!
+  image: String
+  link: String
+  updated_at: DateTimeISO
+}
+
 type Adjudicated {
   adjudicated_status: Adjudicated_Status
   comments: String
@@ -49,7 +58,7 @@ type Doctor {
   id: ID
   profession: String
   status: Status!
-  surgeries: [Surgery!]
+  surgeries: [SurgeryDoctor!]
   updated_at: DateTimeISO
   user: User
 }
@@ -102,9 +111,12 @@ type Locality {
 }
 
 type Mutation {
+  addDoctorToSurgery(doctorId: String!, surgeryId: String!): Boolean!
+  createAdMutation(image: String!, link: String!): Boolean!
   createNewApplicantDoctor(email: String!, name: String!, phone: String!, registration_number: String!, specialty: String!): Boolean!
   createNewDoctor: Doctor!
   createNewSurgerie(surgery: SurgeryInput!): Boolean!
+  deleteAdMutation(id: String!): Boolean!
   deleteSurgeries(surgeriesId: [String!]!): Boolean!
   generatePresignedUrlCurriculumDoctor(file_type: String!): PresignedUrlResponse!
   generatePresignedUrlPaymentReceipt(file_type: String!): PresignedUrlResponse!
@@ -121,9 +133,10 @@ type Mutation {
   savePaymentReceiptDataBase(paymentKey: String!, paymentLocation: String!): Boolean!
   subscribeSurgerie(coments: String, document_identification: String!, email: String!, first_name: String!, last_name: String!, phone: String!, surgerieId: String!): Boolean!
   updateAccountSettings(birth_date: String!, email: String!, first_name: String!, last_name: String!, phone: String!): Boolean!
-  updateInfoDoctor(description: String, profession: String!, status: String!): Doctor!
+  updateAdMutation(id: String!, image: String!, link: String!): Boolean!
+  updateInfoDoctor(description: String, doctorId: String!, status: String!): Doctor!
   updateProfileSettings(gender: String!, identification_document: String!, social_media: [SocialMediaInput!]!): Boolean!
-  updateSurgerie(surgery: SurgeryInput!): Boolean!
+  updateSurgerie(status: String!, surgeryId: String!): Boolean!
   updateUserProfileImage(profile_image: String!): UpdateProfileImageResponse!
   verifyAdjudicated(adjudicatedId: String!): Boolean!
 }
@@ -140,9 +153,11 @@ type Query {
   getAdjudicatedByMonthAndYear(limit: Float = 7, month: Float!, offset: Float = 0, year: Float!): [Adjudicated!]!
   getAdjudicatedByStatus(status: String!): [Adjudicated!]!
   getAdjudicatedListDoctor: [Adjudicated!]!
+  getAdsQuery: [AD!]!
   getAllAdjudicated: [Adjudicated!]!
   getAllSurgeriesWithValues(limit: Float = 8, offset: Float = 0): [Surgery!]!
   getDoctor(doctorId: String!): DoctorBasicData!
+  getDoctorByStatus(limit: Int, offset: Int, status: String!): [Doctor!]!
   getDoctorFilter(limit: Int, offset: Int): [Doctor!]!
   getDoctorsByName(limit: Int, name: String!, offset: Int): [Doctor!]!
   getEarningsByDoctor(doctorId: String!): [Adjudicated!]!
@@ -150,6 +165,7 @@ type Query {
   getMySurgeries: [Surgery!]!
   getSurgerieById(id: String!): Surgery!
   getSurgeriesDoctorById(doctorId: String!): [Surgery!]!
+  getSurgeryCategory(category: String!): [Surgery!]!
   getSurgeryStatus(status: String!): [Surgery!]!
   getUserData: UserDataResponseSingInUp!
   getUserLottery: [Adjudicated!]!
@@ -209,7 +225,7 @@ type Surgery {
   created_at: DateTimeISO
   deleted_at: DateTimeISO
   description: String
-  doctor: Doctor
+  doctors: [SurgeryDoctor!]
   file_banner: File_DB
   files: [File_DB!]
   id: ID!
@@ -227,6 +243,12 @@ enum SurgeryCategories {
   FacialSurgeries
   GeneralSurgeries
   ReconstructiveSurgeries
+}
+
+type SurgeryDoctor {
+  doctor: Doctor!
+  id: ID!
+  surgery: Surgery!
 }
 
 input SurgeryInput {

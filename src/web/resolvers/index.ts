@@ -4,6 +4,7 @@ import UserResolver from "./User";
 import DoctorResolver from "./Doctor";
 import SurgerieResolver from "./Surgery";
 import AdjudicatedResolver from "./Adjudicated";
+import { AdResolver } from "./ad";
 
 export default [
   PingResolver,
@@ -11,5 +12,6 @@ export default [
   FileResolver,
   DoctorResolver,
   SurgerieResolver,
-  AdjudicatedResolver
+  AdjudicatedResolver,
+  AdResolver
 ] as const;

@@ -240,7 +240,6 @@ class AdjudicatedResolver {
     return adjudicatedList;
   }
 
-  @Authorized()
   @Query(() => [Adjudicated])
   async getUserLottery(@Ctx() ctx: Context): Promise<Adjudicated[]> {
     return await getUserLottery(ctx);

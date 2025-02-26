@@ -12,7 +12,8 @@ import {
 } from "typeorm";
 import { ObjectType, Field, ID } from "type-graphql";
 import { Status } from "@/utils/constants/status.enum";
-import { User, Surgery, Adjudicated, File_DB } from ".";
+import { User, Adjudicated, File_DB } from ".";
+import SurgeryDoctor from "./SurgeryDoctor";
 
 // Doctor entity
 @ObjectType()
@@ -67,9 +68,9 @@ class Doctor {
   @Field(() => [Adjudicated])
   adjudicateds: Adjudicated[];
 
-  @OneToMany(() => Surgery, (surgery) => surgery.doctor, { nullable: true })
-  @Field(() => [Surgery], { nullable: true })
-  surgeries: Surgery[];
+  @OneToMany(() => SurgeryDoctor, (surgeryDoctor) => surgeryDoctor.doctor, { nullable: true })
+  @Field(() => [SurgeryDoctor], { nullable: true })
+  surgeries: SurgeryDoctor[];
 }
 
 export default Doctor;
