@@ -30,6 +30,6 @@ export const deleteAd = async (id: string): Promise<boolean> => {
   if (!ad) {
     return false;
   }
-  await AdRepository.delete(ad);
+  await AdRepository.delete(id);
   return true;
 };
