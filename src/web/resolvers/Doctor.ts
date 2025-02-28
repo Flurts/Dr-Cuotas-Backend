@@ -7,10 +7,11 @@ import {
 } from "@services/doctor";
 import { Context } from "@/utils/constants";
 import { Doctor } from "@/databases/postgresql/entities/models";
-import { DoctorRepository } from "@/databases/postgresql/repos";
+import { DoctorRepository, UserRepository } from "@/databases/postgresql/repos";
 import { Status } from "@/utils/constants/status.enum";
 import { DoctorBasicData } from "@/utils/types/Doctor";
 import { DoctorApplicationsRepository } from "@/databases/postgresql/repos/Doctor_Applications";
+import { Role } from "@/utils/constants/role.enum";
 
 @Resolver()
 class DoctorResolver {
@@ -47,7 +48,6 @@ class DoctorResolver {
     }
   }
 
-
   @Mutation(() => Doctor)
   async updateInfoDoctor(
     @Arg("status") status: Status,
@@ -65,8 +65,15 @@ class DoctorResolver {
         throw new Error("Doctor not found");
       }
 
+      // Actualizar la información del doctor
       await DoctorRepository.update(doctorId, { status, description });
 
+      // Actualizar el rol del usuario asociado al doctor
+      if (doctor.user) {
+        await UserRepository.update(doctor.user.id, { role: Role.Doctor }); // Corrección aquí
+      }
+
+      // Obtener la información actualizada del doctor
       const updatedDoctor = await DoctorRepository.findOne({
         where: { id: doctorId },
         relations: { curriculum: true, user: true },
