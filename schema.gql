@@ -51,6 +51,7 @@ scalar DateTimeISO
 
 type Doctor {
   adjudicateds: [Adjudicated!]!
+  country: String
   created_at: DateTimeISO
   curriculum: File_DB
   deleted_at: DateTimeISO
@@ -58,6 +59,7 @@ type Doctor {
   evidences: [Evidence!]
   id: ID
   profession: String
+  provincia: String
   status: Status!
   surgeries: [SurgeryDoctor!]
   updated_at: DateTimeISO
@@ -133,7 +135,7 @@ type Mutation {
   createAdMutation(image: String!, link: String!): Boolean!
   createEvidence(image: String!, link: String!, type: EvidenceType!): Boolean!
   createNewApplicantDoctor(email: String!, name: String!, phone: String!, registration_number: String!, specialty: String!): Boolean!
-  createNewDoctor: Doctor!
+  createNewDoctor(country: String, province: String): Doctor!
   createNewSurgerie(surgery: SurgeryInput!): Boolean!
   deleteAdMutation(id: String!): Boolean!
   deleteEvidence(id: String!): Boolean!

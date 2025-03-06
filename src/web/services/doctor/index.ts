@@ -5,7 +5,11 @@ import { Like } from "typeorm";
 import { File_Type } from "@/utils/constants/file_type.enum";
 import { DoctorBasicData } from "@/utils/types/Doctor";
 
-export const createNewDoctor = async (userId: string): Promise<Doctor | null> => {
+export const createNewDoctor = async (
+  userId: string,
+  country?: string,
+  provincia?: string
+): Promise<Doctor | null> => {
   const user = await UserRepository.findOneBy({ id: userId });
 
   if (!user) {
@@ -14,7 +18,9 @@ export const createNewDoctor = async (userId: string): Promise<Doctor | null> =>
 
   const newDoctor = await DoctorRepository.create({
     user,
-    status: Status.Active
+    status: Status.Active,
+    country,
+    provincia
   });
 
   await DoctorRepository.save(newDoctor);

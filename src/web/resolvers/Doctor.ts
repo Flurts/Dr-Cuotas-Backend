@@ -17,8 +17,12 @@ import { Role } from "@/utils/constants/role.enum";
 class DoctorResolver {
   @Authorized()
   @Mutation(() => Doctor)
-  async createNewDoctor(@Ctx() ctx: Context) {
-    const response = await createNewDoctor(ctx.auth.userId);
+  async createNewDoctor(
+    @Ctx() ctx: Context,
+    @Arg("country", { nullable: true }) country?: string,
+    @Arg("province", { nullable: true }) province?: string
+  ) {
+    const response = await createNewDoctor(ctx.auth.userId, country, province);
     return response;
   }
 
