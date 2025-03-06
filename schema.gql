@@ -55,6 +55,7 @@ type Doctor {
   curriculum: File_DB
   deleted_at: DateTimeISO
   description: String
+  evidences: [Evidence!]
   id: ID
   profession: String
   status: Status!
@@ -67,6 +68,23 @@ type DoctorBasicData {
   curriculum: File_DB
   doctor: Doctor
   status: Boolean!
+}
+
+type Evidence {
+  created_at: DateTimeISO
+  deleted_at: DateTimeISO
+  doctor: Doctor!
+  id: ID!
+  image: String
+  link: String
+  type: EvidenceType!
+  updated_at: DateTimeISO
+}
+
+"""Enum para definir el tipo de evidencia (YouTube o Media)"""
+enum EvidenceType {
+  MEDIA
+  YOUTUBE
 }
 
 type File_DB {
@@ -113,10 +131,12 @@ type Locality {
 type Mutation {
   addDoctorToSurgery(doctorId: String!, surgeryId: String!): Boolean!
   createAdMutation(image: String!, link: String!): Boolean!
+  createEvidence(image: String!, link: String!, type: EvidenceType!): Boolean!
   createNewApplicantDoctor(email: String!, name: String!, phone: String!, registration_number: String!, specialty: String!): Boolean!
   createNewDoctor: Doctor!
   createNewSurgerie(surgery: SurgeryInput!): Boolean!
   deleteAdMutation(id: String!): Boolean!
+  deleteEvidence(id: String!): Boolean!
   deleteSurgeries(surgeriesId: [String!]!): Boolean!
   generatePresignedUrlCurriculumDoctor(file_type: String!): PresignedUrlResponse!
   generatePresignedUrlPaymentReceipt(file_type: String!): PresignedUrlResponse!
@@ -134,6 +154,7 @@ type Mutation {
   subscribeSurgerie(coments: String, document_identification: String!, email: String!, first_name: String!, last_name: String!, phone: String!, surgerieId: String!): Boolean!
   updateAccountSettings(birth_date: String!, email: String!, first_name: String!, last_name: String!, phone: String!): Boolean!
   updateAdMutation(id: String!, image: String!, link: String!): Boolean!
+  updateEvidence(id: String!, image: String!, link: String!, type: EvidenceType!): Boolean!
   updateInfoDoctor(description: String, doctorId: String!, status: String!): Doctor!
   updateProfileSettings(gender: String!, identification_document: String!, social_media: [SocialMediaInput!]!): Boolean!
   updateSurgerie(status: String!, surgeryId: String!): Boolean!
@@ -148,6 +169,8 @@ type PresignedUrlResponse {
 }
 
 type Query {
+  evidences: [Evidence!]!
+  evidencesByDoctor(doctorId: String!): [Evidence!]!
   getAdjudicatedByDoctor(doctorId: String!, status: Adjudicated_Status!): [Adjudicated!]!
   getAdjudicatedById(adjudicatedId: String!): Adjudicated
   getAdjudicatedByMonthAndYear(limit: Float = 7, month: Float!, offset: Float = 0, year: Float!): [Adjudicated!]!
@@ -218,6 +241,18 @@ enum Status {
   Inactive
 }
 
+"""Enum de subcategorías de cirugía"""
+enum SubSurgeryCategories {
+  BreastAugmentation
+  BreastLift
+  BreastReduction
+  ButtockLift
+  EyelidSurgery
+  Facelift
+  Liposuction
+  TummyTuck
+}
+
 type Surgery {
   adjudicateds: [Adjudicated!]
   amount: Float!
@@ -232,6 +267,7 @@ type Surgery {
   name: String!
   rating: Float!
   status: Status!
+  subcategory: SubSurgeryCategories
   type: SurgeryTypes!
   updated_at: DateTimeISO
 }
@@ -258,6 +294,7 @@ input SurgeryInput {
   id: String
   name: String
   status: Status
+  subcategory: SubSurgeryCategories
   surgeryImage: String
   surgeryImageKey: String
   surgeryImageLocation: String

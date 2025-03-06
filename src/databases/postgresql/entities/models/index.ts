@@ -10,6 +10,7 @@ import Social_Media from "./Social_Media";
 import Doctor_Applications from "./Doctor_Applications";
 import ad from "./ad";
 import SurgeryDoctor from "./SurgeryDoctor";
+import Evidence from "./Evidence";
 
 export {
   User,
@@ -23,7 +24,8 @@ export {
   Social_Media,
   Doctor_Applications,
   ad,
-  SurgeryDoctor
+  SurgeryDoctor,
+  Evidence
 };
 
 export const models = [
@@ -38,5 +40,6 @@ export const models = [
   Social_Media,
   Doctor_Applications,
   ad,
-  SurgeryDoctor
+  SurgeryDoctor,
+  Evidence
 ];

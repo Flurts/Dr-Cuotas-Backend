@@ -14,7 +14,11 @@ import {
 import { ObjectType, Field, ID } from "type-graphql";
 import { Status } from "@/utils/constants/status.enum";
 import { File_DB, Adjudicated } from ".";
-import { SurgeryCategories, SurgeryTypes } from "@/utils/constants/surgery.enum";
+import {
+  SurgeryCategories,
+  SurgeryTypes,
+  SubSurgeryCategories
+} from "@/utils/constants/surgery.enum";
 import SurgeryDoctor from "./SurgeryDoctor";
 
 @ObjectType()
@@ -56,6 +60,15 @@ class Surgery {
   })
   @Field(() => SurgeryCategories)
   category: SurgeryCategories;
+
+  @Field(() => SubSurgeryCategories, { nullable: true })
+  @Column({
+    type: "enum",
+    enum: SubSurgeryCategories,
+    nullable: true,
+    default: SubSurgeryCategories.Liposuction
+  })
+  subcategory: SubSurgeryCategories;
 
   @Column({
     type: "enum",

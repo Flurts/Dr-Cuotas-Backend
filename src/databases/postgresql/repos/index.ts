@@ -9,3 +9,4 @@ export * from "./Payment_Method";
 export * from "./Social_Media";
 export * from "./Ad";
 export * from "./SurgeryDoctor";
+export * from "./Evidence";

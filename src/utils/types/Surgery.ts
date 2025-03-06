@@ -1,6 +1,6 @@
 import { Field, InputType } from "type-graphql";
 import { Status } from "../constants/status.enum";
-import { SurgeryCategories, SurgeryTypes } from "../constants/surgery.enum";
+import { SurgeryCategories, SurgeryTypes, SubSurgeryCategories } from "../constants/surgery.enum";
 
 @InputType()
 export class SurgeryInput {
@@ -21,6 +21,9 @@ export class SurgeryInput {
 
   @Field((type) => SurgeryCategories, { nullable: true })
   category: SurgeryCategories;
+
+  @Field((type) => SubSurgeryCategories, { nullable: true })
+  subcategory: SubSurgeryCategories;
 
   @Field({ nullable: true })
   surgeryImage?: string;

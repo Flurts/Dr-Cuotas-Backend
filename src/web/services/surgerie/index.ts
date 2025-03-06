@@ -9,7 +9,11 @@ import { Status } from "@/utils/constants/status.enum";
 import AwsS3Service from "@/services/AWS/s3";
 import { SurgeryInput } from "@/utils/types/Surgery";
 import { File_Type } from "@/utils/constants/file_type.enum";
-import { SurgeryCategories, SurgeryTypes } from "@/utils/constants/surgery.enum";
+import {
+  SurgeryCategories,
+  SurgeryTypes,
+  SubSurgeryCategories
+} from "@/utils/constants/surgery.enum";
 import { PresignedUrlResponse } from "@/utils/types/user";
 import { File_DB } from "@/databases/postgresql/entities/models";
 
@@ -66,9 +70,11 @@ export const createNewSurgerie = async (surgery: SurgeryInput, ctx: Context): Pr
       amount: surgery.amount,
       type: SurgeryTypes[surgery.type as keyof typeof SurgeryTypes],
       category: SurgeryCategories[surgery.category as keyof typeof SurgeryCategories],
+      subcategory: SubSurgeryCategories[surgery.subcategory as keyof typeof SubSurgeryCategories],
       status: surgery.status,
       file_banner: newFile
     });
+
     await SurgeryRepository.save(newSurgerie);
 
     // Relacionar la cirugía con el doctor

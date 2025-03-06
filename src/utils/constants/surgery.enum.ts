@@ -135,7 +135,23 @@ export enum SurgeryCategories {
   // DentalSurgeries = "DentalSurgeries",
 }
 
+export enum SubSurgeryCategories {
+  EyelidSurgery = "EyelidSurgery",
+  Facelift = "Facelift",
+  BreastAugmentation = "BreastAugmentation",
+  BreastReduction = "BreastReduction",
+  BreastLift = "BreastLift",
+  Liposuction = "Liposuction",
+  TummyTuck = "TummyTuck",
+  ButtockLift = "ButtockLift"
+}
+
 registerEnumType(SurgeryCategories, {
   name: "SurgeryCategories",
   description: "Categories of surgeries"
+});
+
+registerEnumType(SubSurgeryCategories, {
+  name: "SubSurgeryCategories",
+  description: "Enum de subcategorías de cirugía"
 });
