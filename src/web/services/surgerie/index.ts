@@ -68,6 +68,7 @@ export const createNewSurgerie = async (surgery: SurgeryInput, ctx: Context): Pr
       name: surgery.name,
       description: surgery.description,
       amount: surgery.amount,
+      
       type: SurgeryTypes[surgery.type as keyof typeof SurgeryTypes],
       category: SurgeryCategories[surgery.category as keyof typeof SurgeryCategories],
       subcategory: SubSurgeryCategories[surgery.subcategory as keyof typeof SubSurgeryCategories],
