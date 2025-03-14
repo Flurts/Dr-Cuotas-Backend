@@ -66,7 +66,7 @@ class Surgery {
     type: "enum",
     enum: SubSurgeryCategories,
     nullable: true,
-    default: SubSurgeryCategories.Liposuction
+    default: SubSurgeryCategories.BreastAugmentation
   })
   subcategory: SubSurgeryCategories;
 
