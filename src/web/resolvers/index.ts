@@ -5,6 +5,7 @@ import DoctorResolver from "./Doctor";
 import SurgerieResolver from "./Surgery";
 import AdjudicatedResolver from "./Adjudicated";
 import EvidenceResolver, { AdResolver } from "./ad";
+import Pagos360Resolver from "./pagos360";
 
 export default [
   PingResolver,
@@ -14,5 +15,6 @@ export default [
   SurgerieResolver,
   AdjudicatedResolver,
   AdResolver,
-  EvidenceResolver
+  EvidenceResolver,
+  Pagos360Resolver
 ] as const;

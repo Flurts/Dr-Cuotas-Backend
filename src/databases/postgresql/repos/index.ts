@@ -10,3 +10,4 @@ export * from "./Social_Media";
 export * from "./Ad";
 export * from "./SurgeryDoctor";
 export * from "./Evidence";
+export * from "./Transacctions";

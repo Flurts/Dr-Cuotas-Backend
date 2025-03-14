@@ -16,7 +16,7 @@ import { addMonths } from "date-fns";
 @Resolver()
 class AdjudicatedResolver {
   @Authorized()
-  @Mutation(() => Boolean)
+  @Mutation(() => Adjudicated)
   async subscribeSurgerie(
     @Arg("first_name") firstName: string,
     @Arg("last_name") lastName: string,

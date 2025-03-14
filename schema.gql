@@ -137,6 +137,7 @@ type Mutation {
   createNewApplicantDoctor(email: String!, name: String!, phone: String!, registration_number: String!, specialty: String!): Boolean!
   createNewDoctor(country: String, province: String): Doctor!
   createNewSurgerie(surgery: SurgeryInput!): Boolean!
+  createPaymentRequest(data: PaymentInput!): String!
   deleteAdMutation(id: String!): Boolean!
   deleteEvidence(id: String!): Boolean!
   deleteSurgeries(surgeriesId: [String!]!): Boolean!
@@ -153,15 +154,31 @@ type Mutation {
   saveCurriculumVitaeDataBase(curriculumKey: String!, curriculumLocation: String!, file_type: String!): Boolean!
   saveImageUserS3(profileImageKey: String!, profileImageLocation: String!): Boolean!
   savePaymentReceiptDataBase(paymentKey: String!, paymentLocation: String!): Boolean!
-  subscribeSurgerie(coments: String, document_identification: String!, email: String!, first_name: String!, last_name: String!, phone: String!, surgerieId: String!): Boolean!
+  subscribeSurgerie(coments: String, document_identification: String!, email: String!, first_name: String!, last_name: String!, phone: String!, surgerieId: String!): Adjudicated!
   updateAccountSettings(birth_date: String!, email: String!, first_name: String!, last_name: String!, phone: String!): Boolean!
   updateAdMutation(id: String!, image: String!, link: String!): Boolean!
   updateEvidence(id: String!, image: String!, link: String!, type: EvidenceType!): Boolean!
   updateInfoDoctor(description: String, doctorId: String!, status: String!): Doctor!
   updateProfileSettings(gender: String!, identification_document: String!, social_media: [SocialMediaInput!]!): Boolean!
   updateSurgerie(status: String!, surgeryId: String!): Boolean!
+  updateTransactionStatus(id: String!, status: String!): Boolean!
   updateUserProfileImage(profile_image: String!): UpdateProfileImageResponse!
   verifyAdjudicated(adjudicatedId: String!): Boolean!
+}
+
+input PaymentInput {
+  adjudicadosId: String
+  back_url_pending: String
+  back_url_rejected: String
+  back_url_success: String
+  description: String!
+  external_reference: String
+  first_due_date: String!
+  first_total: Float!
+  payer_email: String
+  payer_name: String
+  second_due_date: String
+  second_total: Float
 }
 
 type PresignedUrlResponse {
@@ -321,6 +338,22 @@ enum SurgeryTypes {
   TummyTuck
 }
 
+type Transaction {
+  AdjudicadosId: String
+  created_at: DateTimeISO!
+  externalId: String!
+  id: ID!
+  status: TransactionStatus!
+  updated_at: DateTimeISO!
+  user: User!
+}
+
+enum TransactionStatus {
+  PENDING
+  REJECTED
+  SUCCESS
+}
+
 type UpdateProfileCvResponse {
   cv: String
   status: Boolean!
@@ -352,6 +385,7 @@ type User {
   role: Role!
   social_media: [Social_Media!]
   status: Status!
+  transactions: [Transaction!]
   updated_at: DateTimeISO!
 }
 
