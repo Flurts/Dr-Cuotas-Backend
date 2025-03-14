@@ -10,6 +10,7 @@ const config = {
       username: process.env.DATABASE_USERNAME ?? "backend",
       password: process.env.DATABASE_PASSWORD ?? "backend",
       database: process.env.DATABASE_NAME ?? "backend"
+      
     }
   },
   web: {
