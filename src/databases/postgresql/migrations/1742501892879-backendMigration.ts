@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class BackendMigration1742242495340 implements MigrationInterface {
-    name = 'BackendMigration1742242495340'
+export class BackendMigration1742501892879 implements MigrationInterface {
+    name = 'BackendMigration1742501892879'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`CREATE TYPE "public"."social_media_type_enum" AS ENUM('Facebook', 'Twitter', 'Instagram', 'LinkedIn', 'YouTube', 'WhatsApp', 'Telegram', 'Pinterest', 'Snapchat', 'TikTok')`);
@@ -47,6 +47,8 @@ export class BackendMigration1742242495340 implements MigrationInterface {
         await queryRunner.query(`CREATE TYPE "public"."evidence_type_enum" AS ENUM('youtube', 'media')`);
         await queryRunner.query(`CREATE TABLE "evidence" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "image" character varying NOT NULL, "link" character varying NOT NULL, "type" "public"."evidence_type_enum" NOT NULL DEFAULT 'media', "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "deleted_at" TIMESTAMP, "doctorId" uuid, CONSTRAINT "PK_b864cb5d49854f89917fc0b44b9" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE INDEX "IDX_b864cb5d49854f89917fc0b44b" ON "evidence" ("id") `);
+        await queryRunner.query(`CREATE TABLE "code_reference" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "code" character varying NOT NULL, "name" character varying NOT NULL, "count" integer NOT NULL, "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), "deleted_at" TIMESTAMP, CONSTRAINT "PK_a67e9b81412e2fc66c26e1408c5" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE INDEX "IDX_a67e9b81412e2fc66c26e1408c" ON "code_reference" ("id") `);
         await queryRunner.query(`CREATE TABLE "user_social_media_social_media" ("userId" uuid NOT NULL, "socialMediaId" uuid NOT NULL, CONSTRAINT "PK_035185952b78f284890abe568eb" PRIMARY KEY ("userId", "socialMediaId"))`);
         await queryRunner.query(`CREATE INDEX "IDX_a1fb8f9055ce2c6067fe3f6f31" ON "user_social_media_social_media" ("userId") `);
         await queryRunner.query(`CREATE INDEX "IDX_2fc0585482b86e679d72f199a9" ON "user_social_media_social_media" ("socialMediaId") `);
@@ -86,6 +88,8 @@ export class BackendMigration1742242495340 implements MigrationInterface {
         await queryRunner.query(`DROP INDEX "public"."IDX_2fc0585482b86e679d72f199a9"`);
         await queryRunner.query(`DROP INDEX "public"."IDX_a1fb8f9055ce2c6067fe3f6f31"`);
         await queryRunner.query(`DROP TABLE "user_social_media_social_media"`);
+        await queryRunner.query(`DROP INDEX "public"."IDX_a67e9b81412e2fc66c26e1408c"`);
+        await queryRunner.query(`DROP TABLE "code_reference"`);
         await queryRunner.query(`DROP INDEX "public"."IDX_b864cb5d49854f89917fc0b44b"`);
         await queryRunner.query(`DROP TABLE "evidence"`);
         await queryRunner.query(`DROP TYPE "public"."evidence_type_enum"`);

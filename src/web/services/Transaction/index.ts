@@ -1,5 +1,6 @@
 import { TransacctionsRepository, AdjudicatedRepository } from "@/databases/postgresql/repos";
 import { TransactionStatus } from "@/databases/postgresql/entities/models/transacctions";
+import { Adjudicated_Status } from "@/utils/constants/status.enum"; // Update import path to match your code
 
 export async function updateTransactionStatus(id: string, status: string): Promise<boolean> {
   const transactionRepository = TransacctionsRepository;
@@ -10,37 +11,51 @@ export async function updateTransactionStatus(id: string, status: string): Promi
     throw new Error("Transacción no encontrada");
   }
 
-  if (status === "paid") {
-    transaction.status = TransactionStatus.SUCCESS;
-    await transactionRepository.save(transaction);
+  if (transaction.AdjudicadosId) {
+    let adjudicated = await adjudicatedRepository.findOne({
+      where: { id: transaction.AdjudicadosId }
+    });
 
-    if (transaction.AdjudicadosId) {
-      let adjudicated = await adjudicatedRepository.findOne({
-        where: { id: transaction.AdjudicadosId }
-      });
-
-      if (!adjudicated) {
-        // Si no existe, creamos un nuevo adjudicado con quotas_paid = 1
-        adjudicated = adjudicatedRepository.create({
-          id: transaction.AdjudicadosId,
-          quotas_paid: 1
-        });
-      } else {
-        // Si ya existe, incrementamos quotas_paid
-        adjudicated.quotas_paid! += 1;
-      }
-
-      await adjudicatedRepository.save(adjudicated);
+    if (!adjudicated) {
+      // Create a new entity with the required fields
+      adjudicated = adjudicatedRepository.create();
+      adjudicated.id = transaction.AdjudicadosId;
+      adjudicated.quotas_paid = status === "paid" ? 1 : 0;
+      adjudicated.adjudicated_status =
+        status === "paid" ? Adjudicated_Status.Active : Adjudicated_Status.Rejected;
+    } else {
+      adjudicated.quotas_paid = status === "paid" ? (adjudicated.quotas_paid ?? 0) + 1 : 0;
+      adjudicated.adjudicated_status =
+        status === "paid" ? Adjudicated_Status.Active : Adjudicated_Status.Rejected;
     }
 
-    return true;
+    await adjudicatedRepository.save(adjudicated);
+
+    // Rest of your code remains the same
+    const adjudicatedUser = await adjudicatedRepository.findOne({
+      where: { id: transaction.AdjudicadosId }
+    });
+    if (adjudicatedUser?.user) {
+      const userId = adjudicatedUser.user;
+
+      const userAdjudicateds = await adjudicatedRepository.find({
+        where: { user: userId },
+        order: { created_at: "ASC" }
+      });
+
+      const oldAdjudicated = userAdjudicateds.find((ad) => !ad.quotas_paid || ad.quotas_paid === 0);
+      if (oldAdjudicated) {
+        await adjudicatedRepository.remove(oldAdjudicated);
+      }
+    }
   }
 
-  if (status === "rejected") {
+  if (status === "paid") {
+    transaction.status = TransactionStatus.SUCCESS;
+  } else if (status === "rejected") {
     transaction.status = TransactionStatus.REJECTED;
-    await transactionRepository.save(transaction);
-    return true;
   }
 
-  return false;
+  await transactionRepository.save(transaction);
+  return true;
 }

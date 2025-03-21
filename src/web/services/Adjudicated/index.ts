@@ -1,7 +1,8 @@
 import {
   AdjudicatedRepository,
   SurgeryRepository,
-  UserRepository
+  UserRepository,
+  DoctorRepository
 } from "@/databases/postgresql/repos";
 import { Context } from "@/utils/constants";
 import { Adjudicated_Status, Status } from "@/utils/constants/status.enum";
@@ -14,9 +15,13 @@ export const subscribeSurgerie = async (
   documentIdentification: string,
   email: string,
   phone: string,
+  quotasNumber: number,
+  totalPrice: number,
+  quotaprice: number,
   coments: string,
   surgerieId: string,
-  ctx: Context
+  ctx: Context,
+  doctorId?: string // Added optional doctorId parameter
 ): Promise<Adjudicated> => {
   // Validate user exists and get adjudicated relations
   const user = await UserRepository.findOne({
@@ -40,9 +45,6 @@ export const subscribeSurgerie = async (
           ].includes(adjudicated.adjudicated_status))
     ) || false;
 
-  if (isAdjudicatedActive)
-    throw new Error("El usuario ya tiene una adjudicación activa para esta cirugía");
-
   // Find the surgery with its doctor relationships
   const subscribedSurgerie = await SurgeryRepository.findOne({
     where: { id: surgerieId, status: Status.Active },
@@ -51,9 +53,22 @@ export const subscribeSurgerie = async (
 
   if (!subscribedSurgerie) throw new Error("La cirugía no existe o no está activa.");
 
-  // Get doctor from the SurgeryDoctor relationship
-  const surgeryDoctor = subscribedSurgerie.doctors[0] || null;
-  const assignedDoctor = surgeryDoctor?.doctor || null;
+  // Handle doctor assignment logic
+  let selectedDoctor = null;
+  if (doctorId) {
+    // If doctorId is provided, try to find that doctor
+    selectedDoctor = await DoctorRepository.findOne({
+      where: { id: doctorId, status: Status.Active }
+    });
+
+    if (!selectedDoctor) {
+      throw new Error("El doctor seleccionado no existe o no está activo");
+    }
+  } else {
+    // Use default doctor from surgery if no doctorId provided
+    const surgeryDoctor = subscribedSurgerie.doctors[0] || null;
+    selectedDoctor = surgeryDoctor?.doctor || null;
+  }
 
   const commentsTrimmed = typeof coments === "string" ? coments.trim() : "";
 
@@ -63,8 +78,11 @@ export const subscribeSurgerie = async (
     status: Status.Active,
     adjudicated_status: Adjudicated_Status.Validating,
     user,
+    quotas_number: quotasNumber,
+    total_price: totalPrice,
+    quota_price: quotaprice,
     surgery: subscribedSurgerie,
-    ...(assignedDoctor && { doctor: assignedDoctor })
+    ...(selectedDoctor && { doctor: selectedDoctor })
   });
 
   // Guardar el objeto
@@ -103,34 +121,38 @@ const calculateTotalPaid = (adjudicated: Adjudicated): number => {
 };
 
 export const getAdjudicatedByDoctor = async (
-  doctorId: string,
+  userId: string,
   status: Adjudicated_Status,
   ctx: Context
 ): Promise<Adjudicated[]> => {
-  const adjudicatedList = await AdjudicatedRepository.find({
-    where: {
-      doctor: { id: doctorId },
-      adjudicated_status: status
-    },
-    relations: {
-      user: true,
-      surgery: true,
-      doctor: true
+  try {
+    // Buscar el doctor usando el userId
+    const doctor = await DoctorRepository.findOne({
+      where: { user: { id: userId } }
+    });
+
+    if (!doctor) {
+      throw new Error("Doctor not found for the given userId");
     }
-  });
 
-  const totalPaidSum = adjudicatedList
-    .map((adjudicated) => calculateTotalPaid(adjudicated))
-    .reduce((sum, current) => sum + current, 0);
+    // Obtener la lista de adjudicados usando el doctorId encontrado
+    const adjudicatedList = await AdjudicatedRepository.find({
+      where: {
+        doctor: { id: doctor.id },
+        adjudicated_status: status
+      },
+      relations: {
+        user: true,
+        surgery: true,
+        doctor: true
+      }
+    });
 
-  const roundedTotalPaidSum = Math.round(totalPaidSum * 100) / 100; // Redondeo a dos decimales
-
-  const updatedList = adjudicatedList.map((adjudicated) => {
-    const totalPaid = Math.round(calculateTotalPaid(adjudicated) * 100) / 100; // Redondeo a dos decimales
-    return { ...adjudicated, totalPaid, totalPaidSum: roundedTotalPaidSum };
-  });
-
-  return updatedList;
+    return adjudicatedList;
+  } catch (error) {
+    console.error("Error fetching adjudicated by doctor:", error);
+    return [];
+  }
 };
 
 export const getEarningsByDoctor = async (

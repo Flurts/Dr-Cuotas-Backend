@@ -1,5 +1,5 @@
 import { Context } from "@/utils/constants";
-import { Arg, Authorized, Ctx, Mutation, Query, Resolver } from "type-graphql";
+import { Arg, Authorized, Ctx, Mutation, Query, Resolver, Int } from "type-graphql";
 import {
   subscribeSurgerie,
   getAllAdjudicated,
@@ -21,10 +21,14 @@ class AdjudicatedResolver {
     @Arg("first_name") firstName: string,
     @Arg("last_name") lastName: string,
     @Arg("document_identification") documentIdentification: string,
+    @Arg("quotasNumber", () => Int) quotasNumber: number,
+    @Arg("totalPrice") totalPrice: number,
+    @Arg("quotaPrice") quotaPrice: number,
     @Arg("email") email: string,
     @Arg("phone") phone: string,
     @Arg("coments", { nullable: true }) coments: string,
     @Arg("surgerieId") surgerieId: string,
+    @Arg("doctorId", { nullable: true }) doctorId: string,
     @Ctx() ctx: Context
   ) {
     const response = await subscribeSurgerie(
@@ -33,9 +37,13 @@ class AdjudicatedResolver {
       documentIdentification,
       email,
       phone,
+      quotasNumber,
+      totalPrice,
+      quotaPrice,
       coments,
       surgerieId,
-      ctx
+      ctx,
+      doctorId
     );
     return response;
   }
@@ -165,11 +173,10 @@ class AdjudicatedResolver {
   @Authorized()
   @Query(() => [Adjudicated])
   async getAdjudicatedByDoctor(
-    @Arg("doctorId") doctorId: string,
     @Arg("status", () => Adjudicated_Status) status: Adjudicated_Status,
     @Ctx() ctx: Context
   ) {
-    const response = await getAdjudicatedByDoctor(doctorId, status, ctx);
+    const response = await getAdjudicatedByDoctor(ctx.auth.userId, status, ctx);
     return response;
   }
 

@@ -12,6 +12,7 @@ import ad from "./ad";
 import SurgeryDoctor from "./SurgeryDoctor";
 import Evidence from "./Evidence";
 import Transaction from "./transacctions";
+import CodeReference from "./Code_Reference";
 
 export {
   User,
@@ -27,7 +28,8 @@ export {
   ad,
   SurgeryDoctor,
   Evidence,
-  Transaction
+  Transaction,
+  CodeReference
 };
 
 export const models = [
@@ -44,5 +46,6 @@ export const models = [
   ad,
   SurgeryDoctor,
   Evidence,
-  Transaction
+  Transaction,
+  CodeReference
 ];
