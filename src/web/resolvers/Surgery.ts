@@ -167,12 +167,12 @@ class SurgerieResolver {
       throw new Error("User is not a doctor");
     }
 
-    const surgeries = await SurgeryRepository.find({
-      where: { doctors: { id: user.doctor.id } }, // Cambio para reflejar la relación
-      relations: ["doctors"]
+    const surgeries = await SurgeryDoctorRepository.find({
+      where: { doctor: { id: user.doctor.id } },
+      relations: ["surgery"]
     });
 
-    return surgeries;
+    return surgeries.map((surgeryDoctor) => surgeryDoctor.surgery);
   }
 
   @Query(() => Surgery)
@@ -208,7 +208,11 @@ class SurgerieResolver {
     const surgeries = await SurgeryRepository.find({
       where: { status: Status.Active },
       relations: {
-        doctors: true, // Cambio de "doctor" a "doctors" para reflejar la relación muchos a muchos
+        doctors: {
+          doctor: {
+            user: true // Relación de user dentro de doctor
+          }
+        }, // Cambio de "doctor" a "doctors" para reflejar la relación muchos a muchos
         file_banner: true
       },
       skip: offset,

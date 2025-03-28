@@ -1,5 +1,11 @@
-import { TransacctionsRepository, AdjudicatedRepository } from "@/databases/postgresql/repos";
-import { TransactionStatus } from "@/databases/postgresql/entities/models/transacctions";
+import {
+  TransacctionsRepository,
+  AdjudicatedRepository,
+  UserRepository
+} from "@/databases/postgresql/repos";
+import Transaction, {
+  TransactionStatus
+} from "@/databases/postgresql/entities/models/transacctions";
 import { Adjudicated_Status } from "@/utils/constants/status.enum"; // Update import path to match your code
 
 export async function updateTransactionStatus(id: string, status: string): Promise<boolean> {
@@ -59,3 +65,31 @@ export async function updateTransactionStatus(id: string, status: string): Promi
   await transactionRepository.save(transaction);
   return true;
 }
+
+export const createTransaction = async (
+  userId: string,
+  adjudicatedId: string
+): Promise<Transaction | null> => {
+  const userRepository = UserRepository; // Assuming you have a UserRepository similar to other repositories
+  const transactionRepository = TransacctionsRepository;
+
+  const user = await userRepository.findOne({ where: { id: userId } });
+
+  if (!user) {
+    return null;
+  }
+
+  const transaction = transactionRepository.create({
+    user,
+    status: TransactionStatus.PENDING,
+    AdjudicadosId: adjudicatedId,
+    externalId: "Transaction"
+  });
+
+  await transactionRepository.save(transaction);
+
+  return await transactionRepository.findOne({
+    where: { id: transaction.id },
+    relations: ["user"] // Add any necessary relations
+  });
+};

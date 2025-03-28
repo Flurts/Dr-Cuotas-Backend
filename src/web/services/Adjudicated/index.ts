@@ -120,15 +120,20 @@ const calculateTotalPaid = (adjudicated: Adjudicated): number => {
   return 0;
 };
 
-export const getAdjudicatedByDoctor = async (
-  userId: string,
-  status: Adjudicated_Status,
-  ctx: Context
-): Promise<Adjudicated[]> => {
+export const getAdjudicatedByDoctor = async (ctx: Context): Promise<Adjudicated[]> => {
   try {
-    // Buscar el doctor usando el userId
+    const user = await UserRepository.findOne({
+      where: { id: ctx.auth.userId },
+      relations: ["doctor"], // Asegurar que obtenemos la relación con Doctor
+      select: ["id"]
+    });
+
+    if (!user?.doctor) {
+      throw new Error("User does not have an associated doctor");
+    }
+
     const doctor = await DoctorRepository.findOne({
-      where: { user: { id: userId } }
+      where: { id: user.doctor.id } // Accedemos correctamente al doctor
     });
 
     if (!doctor) {
@@ -138,14 +143,9 @@ export const getAdjudicatedByDoctor = async (
     // Obtener la lista de adjudicados usando el doctorId encontrado
     const adjudicatedList = await AdjudicatedRepository.find({
       where: {
-        doctor: { id: doctor.id },
-        adjudicated_status: status
+        doctor: { id: doctor.id }
       },
-      relations: {
-        user: true,
-        surgery: true,
-        doctor: true
-      }
+      relations: ["user", "surgery", "doctor"]
     });
 
     return adjudicatedList;

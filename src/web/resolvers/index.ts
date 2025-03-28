@@ -7,6 +7,7 @@ import AdjudicatedResolver from "./Adjudicated";
 import EvidenceResolver, { AdResolver } from "./ad";
 import Pagos360Resolver from "./pagos360";
 import { CodeReferenceResolver } from "./CodeReference";
+import TransactionResolver from "./Transaction";
 
 export default [
   PingResolver,
@@ -18,5 +19,6 @@ export default [
   AdResolver,
   EvidenceResolver,
   Pagos360Resolver,
-  CodeReferenceResolver
+  CodeReferenceResolver,
+  TransactionResolver
 ] as const;

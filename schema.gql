@@ -149,6 +149,7 @@ type Mutation {
   createNewDoctor(country: String, province: String): Doctor!
   createNewSurgerie(surgery: SurgeryInput!): Boolean!
   createPaymentRequest(data: PaymentInput!): String!
+  createTransaction(adjudicatedId: String!): Transaction
   deleteAdMutation(id: String!): Boolean!
   deleteEvidence(id: String!): Boolean!
   deleteSurgeries(surgeriesId: [String!]!): Boolean!
@@ -202,7 +203,7 @@ type PresignedUrlResponse {
 type Query {
   evidences: [Evidence!]!
   evidencesByDoctor(doctorId: String!): [Evidence!]!
-  getAdjudicatedByDoctor(status: Adjudicated_Status!): [Adjudicated!]!
+  getAdjudicatedByDoctor: [Adjudicated!]!
   getAdjudicatedById(adjudicatedId: String!): Adjudicated
   getAdjudicatedByMonthAndYear(limit: Float = 7, month: Float!, offset: Float = 0, year: Float!): [Adjudicated!]!
   getAdjudicatedByStatus(status: String!): [Adjudicated!]!
@@ -222,6 +223,7 @@ type Query {
   getSurgeriesDoctorById(doctorId: String!): [Surgery!]!
   getSurgeryCategory(category: String!): [Surgery!]!
   getSurgeryStatus(status: String!): [Surgery!]!
+  getTransactionByStatus(status: String!): [Transaction!]!
   getUserData: UserDataResponseSingInUp!
   getUserLottery: [Adjudicated!]!
   ping: String!

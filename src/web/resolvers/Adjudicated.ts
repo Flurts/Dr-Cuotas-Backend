@@ -172,11 +172,8 @@ class AdjudicatedResolver {
 
   @Authorized()
   @Query(() => [Adjudicated])
-  async getAdjudicatedByDoctor(
-    @Arg("status", () => Adjudicated_Status) status: Adjudicated_Status,
-    @Ctx() ctx: Context
-  ) {
-    const response = await getAdjudicatedByDoctor(ctx.auth.userId, status, ctx);
+  async getAdjudicatedByDoctor(@Ctx() ctx: Context) {
+    const response = await getAdjudicatedByDoctor(ctx);
     return response;
   }
 
