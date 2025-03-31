@@ -26,13 +26,14 @@ class SurgerieResolver {
     return response;
   }
 
-  @Authorized()
+  @Authorized(["Admin", "Doctor"])
   @Mutation(() => Boolean)
   async createNewSurgerie(@Arg("surgery") surgery: SurgeryInput, @Ctx() ctx: Context) {
     const response = await createNewSurgerie(surgery, ctx);
     return response;
   }
 
+  @Authorized("Admin")
   @Mutation(() => Boolean)
   async updateSurgerie(
     @Arg("surgeryId") surgeryId: string,
@@ -57,6 +58,7 @@ class SurgerieResolver {
     }
   }
 
+  @Authorized("Admin")
   @Mutation(() => Boolean)
   async addDoctorToSurgery(
     @Arg("surgeryId") surgeryId: string,

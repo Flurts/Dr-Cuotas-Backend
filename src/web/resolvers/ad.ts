@@ -17,11 +17,13 @@ import { Context } from "@/utils/constants";
 
 @Resolver(AD)
 export class AdResolver {
+  @Authorized("Admin")
   @Mutation(() => Boolean)
   async createAdMutation(@Arg("image") image: string, @Arg("link") link: string): Promise<boolean> {
     return await createAd(image, link);
   }
 
+  @Authorized("Admin")
   @Mutation(() => Boolean)
   async updateAdMutation(
     @Arg("id") id: string,
@@ -31,6 +33,7 @@ export class AdResolver {
     return await updateAd(id, image, link);
   }
 
+  @Authorized("Admin")
   @Mutation(() => Boolean)
   async deleteAdMutation(@Arg("id") id: string): Promise<boolean> {
     return await deleteAd(id);

@@ -52,7 +52,7 @@ export default class Pagos360Resolver {
     return "pong";
   }
 
-  @Authorized()
+  @Authorized("User")
   @Mutation(() => String)
   async createPaymentRequest(
     @Arg("data") data: PaymentInput,
@@ -120,7 +120,7 @@ export default class Pagos360Resolver {
     }
   }
 
-  @Authorized()
+  @Authorized("Admin")
   @Mutation(() => Boolean)
   async updateTransactionStatus(
     @Arg("id") id: string,

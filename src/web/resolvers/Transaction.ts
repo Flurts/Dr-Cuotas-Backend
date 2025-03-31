@@ -8,7 +8,7 @@ import { TransacctionsRepository } from "@/databases/postgresql/repos";
 
 @Resolver()
 class TransactionResolver {
-  @Authorized()
+  @Authorized("User")
   @Mutation(() => Transaction, { nullable: true })
   async createTransaction(
     @Ctx() ctx: Context,

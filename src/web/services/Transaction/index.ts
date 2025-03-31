@@ -72,7 +72,7 @@ export const createTransaction = async (
 ): Promise<Transaction | null> => {
   const userRepository = UserRepository; // Assuming you have a UserRepository similar to other repositories
   const transactionRepository = TransacctionsRepository;
-
+  const randomUUID = crypto.randomUUID(); // Generate a random UUID for the transaction ID
   const user = await userRepository.findOne({ where: { id: userId } });
 
   if (!user) {
@@ -83,7 +83,7 @@ export const createTransaction = async (
     user,
     status: TransactionStatus.PENDING,
     AdjudicadosId: adjudicatedId,
-    externalId: "Transaction"
+    externalId: `${randomUUID}-Transaction`
   });
 
   await transactionRepository.save(transaction);
