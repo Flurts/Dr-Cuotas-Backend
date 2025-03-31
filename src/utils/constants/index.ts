@@ -7,10 +7,12 @@ export interface Context {
   auth: {
     userId: string;
     sub: string;
+    role: string;
   };
 }
 
 export interface ContextPayload {
   userId: string;
   sub: string;
+  role: string;
 }

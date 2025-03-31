@@ -12,7 +12,8 @@ import {
 } from "typeorm";
 import { ObjectType, Field, ID } from "type-graphql";
 import { Status } from "@/utils/constants/status.enum";
-import { User, Surgery, Adjudicated, File_DB } from ".";
+import { User, Adjudicated, File_DB, Evidence } from ".";
+import SurgeryDoctor from "./SurgeryDoctor";
 
 // Doctor entity
 @ObjectType()
@@ -35,6 +36,14 @@ class Doctor {
   @Column({ type: "text", nullable: true })
   @Field({ nullable: true })
   description: string;
+
+  @Column({ type: "text", nullable: true })
+  @Field({ nullable: true })
+  country: string;
+
+  @Column({ type: "text", nullable: true })
+  @Field({ nullable: true })
+  provincia: string;
 
   @OneToOne(() => File_DB, { nullable: true, onDelete: "CASCADE" })
   @Field(() => File_DB, { nullable: true })
@@ -67,9 +76,13 @@ class Doctor {
   @Field(() => [Adjudicated])
   adjudicateds: Adjudicated[];
 
-  @OneToMany(() => Surgery, (surgery) => surgery.doctor, { nullable: true })
-  @Field(() => [Surgery], { nullable: true })
-  surgeries: Surgery[];
+  @OneToMany(() => SurgeryDoctor, (surgeryDoctor) => surgeryDoctor.doctor, { nullable: true })
+  @Field(() => [SurgeryDoctor], { nullable: true })
+  surgeries: SurgeryDoctor[];
+
+  @OneToMany(() => Evidence, (evidence) => evidence.doctor, { cascade: true })
+  @Field(() => [Evidence], { nullable: true })
+  evidences?: Evidence[];
 }
 
 export default Doctor;

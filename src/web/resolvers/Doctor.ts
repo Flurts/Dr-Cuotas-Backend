@@ -11,13 +11,18 @@ import { DoctorRepository, UserRepository } from "@/databases/postgresql/repos";
 import { Status } from "@/utils/constants/status.enum";
 import { DoctorBasicData } from "@/utils/types/Doctor";
 import { DoctorApplicationsRepository } from "@/databases/postgresql/repos/Doctor_Applications";
+import { Role } from "@/utils/constants/role.enum";
 
 @Resolver()
 class DoctorResolver {
   @Authorized()
   @Mutation(() => Doctor)
-  async createNewDoctor(@Ctx() ctx: Context) {
-    const response = await createNewDoctor(ctx.auth.userId);
+  async createNewDoctor(
+    @Ctx() ctx: Context,
+    @Arg("country", { nullable: true }) country?: string,
+    @Arg("province", { nullable: true }) province?: string
+  ) {
+    const response = await createNewDoctor(ctx.auth.userId, country, province);
     return response;
   }
 
@@ -47,51 +52,46 @@ class DoctorResolver {
     }
   }
 
-  @Authorized()
   @Mutation(() => Doctor)
   async updateInfoDoctor(
-    @Arg("profession") profession: string,
     @Arg("status") status: Status,
     @Arg("description", { nullable: true }) description: string,
+    @Arg("doctorId") doctorId: string,
     @Ctx() ctx: Context
-  ) {
+  ): Promise<Doctor> {
     try {
-      const user = await UserRepository.findOne({
-        where: { id: ctx.auth.userId },
-        relations: {
-          doctor: true
-        }
+      const doctor = await DoctorRepository.findOne({
+        where: { id: doctorId },
+        relations: { user: true }
       });
 
-      if (!user?.doctor) {
-        throw new Error("User not found");
+      if (!doctor) {
+        throw new Error("Doctor not found");
       }
 
-      await DoctorRepository.update(user.doctor.id, {
-        profession,
-        status,
-        description
+      // Actualizar la información del doctor
+      await DoctorRepository.update(doctorId, { status, description });
+
+      // Actualizar el rol del usuario asociado al doctor
+      if (doctor.user) {
+        await UserRepository.update(doctor.user.id, { role: Role.Doctor }); // Corrección aquí
+      }
+
+      // Obtener la información actualizada del doctor
+      const updatedDoctor = await DoctorRepository.findOne({
+        where: { id: doctorId },
+        relations: { curriculum: true, user: true },
+        select: ["id", "profession", "description", "status", "updated_at"]
       });
 
-      const response = await DoctorRepository.findOne({
-        where: { id: user.doctor.id },
-        relations: {
-          curriculum: true
-        },
-        select: {
-          profession: true,
-          description: true,
-          curriculum: {
-            id: true,
-            file_link: true
-          },
-          status: true,
-          updated_at: true
-        }
-      });
-      return response;
+      if (!updatedDoctor) {
+        throw new Error("Error retrieving updated doctor");
+      }
+
+      return updatedDoctor;
     } catch (error) {
-      return error;
+      console.error("Error updating doctor info:", error);
+      throw new Error("Failed to update doctor info");
     }
   }
 
@@ -106,7 +106,26 @@ class DoctorResolver {
     @Arg("limit", () => Int, { nullable: true }) limit: number,
     @Arg("offset", () => Int, { nullable: true }) offset: number
   ) {
-    const response = await getDoctorFilter({ limit: limit ?? 6, offset: offset ?? 0 });
+    const response = await getDoctorFilter({
+      limit: limit ?? 6,
+      offset: offset ?? 0,
+      status: Status.Active
+    });
+    return response;
+  }
+
+  @Query(() => [Doctor])
+  async getDoctorByStatus(
+    @Arg("status") status: Status,
+    @Arg("limit", () => Int, { nullable: true }) limit: number,
+    @Arg("offset", () => Int, { nullable: true }) offset: number
+  ) {
+    const response = await DoctorRepository.find({
+      where: { status },
+      take: limit ?? 6,
+      skip: offset ?? 0,
+      relations: ["user", "surgeries"] // Agregando las relaciones
+    });
     return response;
   }
 

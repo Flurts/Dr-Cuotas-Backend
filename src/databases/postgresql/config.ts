@@ -10,6 +10,7 @@ const options: DataSourceOptions = {
   logging: false,
   dropSchema: false,
   type: "postgres",
+  schema: "public",
   maxQueryExecutionTime: 1000,
   entities: models,
   subscribers: !isProduction ? ["src/**/subscribers/*.ts"] : ["dist/**/subscribers/*.js"],

@@ -33,6 +33,12 @@ class Adjudicated {
   @Field({ nullable: true })
   quotas_number?: number;
 
+  @Field({ nullable: true })
+  totalPaid: number;
+
+  @Field({ nullable: true })
+  totalPaidSum: number;
+
   @Column({ nullable: true })
   @Field({ nullable: true })
   quotas_paid?: number;

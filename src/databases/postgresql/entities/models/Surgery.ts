@@ -9,13 +9,17 @@ import {
   JoinColumn,
   OneToOne,
   OneToMany,
-  ManyToOne,
   BeforeSoftRemove
 } from "typeorm";
 import { ObjectType, Field, ID } from "type-graphql";
 import { Status } from "@/utils/constants/status.enum";
-import { File_DB, Doctor, Adjudicated } from ".";
-import { SurgeryCategories, SurgeryTypes } from "@/utils/constants/surgery.enum";
+import { File_DB, Adjudicated } from ".";
+import {
+  SurgeryCategories,
+  SurgeryTypes,
+  SubSurgeryCategories
+} from "@/utils/constants/surgery.enum";
+import SurgeryDoctor from "./SurgeryDoctor";
 
 @ObjectType()
 @Entity()
@@ -57,6 +61,15 @@ class Surgery {
   @Field(() => SurgeryCategories)
   category: SurgeryCategories;
 
+  @Field(() => SubSurgeryCategories, { nullable: true })
+  @Column({
+    type: "enum",
+    enum: SubSurgeryCategories,
+    nullable: true,
+    default: SubSurgeryCategories.BreastAugmentation
+  })
+  subcategory: SubSurgeryCategories;
+
   @Column({
     type: "enum",
     enum: Status,
@@ -87,10 +100,9 @@ class Surgery {
   @Field(() => [File_DB], { nullable: true })
   files: File_DB[];
 
-  @ManyToOne(() => Doctor, { onDelete: "CASCADE" })
-  @Field(() => Doctor, { nullable: true })
-  @JoinColumn()
-  doctor: Doctor;
+  @OneToMany(() => SurgeryDoctor, (surgeryDoctor) => surgeryDoctor.surgery, { nullable: true })
+  @Field(() => [SurgeryDoctor], { nullable: true })
+  doctors: SurgeryDoctor[];
 
   @OneToMany(() => Adjudicated, (adjudicated) => adjudicated.surgery, { nullable: true })
   @Field(() => [Adjudicated], { nullable: true })
