@@ -146,7 +146,7 @@ type Mutation {
   createCodeReference(name: String!): Boolean!
   createEvidence(image: String!, link: String!, type: EvidenceType!): Boolean!
   createNewApplicantDoctor(email: String!, name: String!, phone: String!, registration_number: String!, specialty: String!): Boolean!
-  createNewDoctor(country: String, province: String): Doctor!
+  createNewDoctor(country: String, description: String, province: String): Doctor!
   createNewSurgerie(surgery: SurgeryInput!): Boolean!
   createPaymentRequest(data: PaymentInput!): String!
   createTransaction(adjudicatedId: String!): Transaction
@@ -162,6 +162,7 @@ type Mutation {
   login(password: String!, phone_email: String!): UserDataResponseSingInUp!
   loginWithGoogleToken(token: String!): UserDataResponseSingInUp!
   paymentUpdateAdjudicated(adjudicatedId: String!, quotas_number: Float!): Boolean!
+  ratingDoctor(doctorId: String!): Boolean!
   registerUser(birth_date: String!, first_name: String!, gender: String!, last_name: String!, password: String!, phone_email: String!): UserDataResponseSingInUp!
   saveCurriculumVitaeDataBase(curriculumKey: String!, curriculumLocation: String!, file_type: String!): Boolean!
   saveImageUserS3(profileImageKey: String!, profileImageLocation: String!): Boolean!
@@ -227,6 +228,16 @@ type Query {
   getUserData: UserDataResponseSingInUp!
   getUserLottery: [Adjudicated!]!
   ping: String!
+}
+
+type RatingDoctor {
+  created_at: DateTimeISO
+  deleted_at: DateTimeISO
+  doctorId: String
+  id: ID!
+  rating: Float
+  updated_at: DateTimeISO
+  user: User!
 }
 
 """List of available roles"""
@@ -408,6 +419,7 @@ type User {
   phone_number: String
   profile_picture: String
   profile_picture_key: String
+  ratings: [RatingDoctor!]
   role: Role!
   social_media: [Social_Media!]
   status: Status!
