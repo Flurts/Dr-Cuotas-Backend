@@ -195,7 +195,14 @@ class SurgerieResolver {
   async getSurgeryStatus(@Arg("status") status: string, @Ctx() ctx: Context) {
     const statusDef: Status = (status as Status) ?? Status.Active;
     const surgeries = await SurgeryRepository.find({
-      where: { status: statusDef }
+      where: { status: statusDef },
+      relations: {
+        doctors: {
+          doctor: {
+            user: true
+          }
+        }
+      }
     });
 
     return surgeries;
