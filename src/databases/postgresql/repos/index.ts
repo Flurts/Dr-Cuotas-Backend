@@ -12,3 +12,4 @@ export * from "./SurgeryDoctor";
 export * from "./Evidence";
 export * from "./Transacctions";
 export * from "./Code_Reference";
+export * from "./RatingDoctor";

@@ -52,7 +52,6 @@ class EvidenceResolver {
     return await getEvidences();
   }
 
-  @Authorized()
   @Query(() => [Evidence])
   async evidencesByDoctor(@Arg("doctorId") doctorId: string): Promise<Evidence[]> {
     return await getEvidencesByDoctor(doctorId);

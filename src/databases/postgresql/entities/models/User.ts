@@ -20,6 +20,7 @@ import { Status } from "@/utils/constants/status.enum";
 import { Adjudicated, Doctor, File_DB } from ".";
 import Social_Media from "./Social_Media";
 import Transaction from "./transacctions";
+import RatingDoctor from "./ratingDoctor";
 
 // User entity
 @ObjectType()
@@ -129,6 +130,10 @@ class User {
   @OneToMany(() => Transaction, (transaction) => transaction.user)
   @Field(() => [Transaction], { nullable: true })
   transactions: Transaction[];
+
+  @OneToMany(() => RatingDoctor, (rating) => rating.user)
+  @Field(() => [RatingDoctor], { nullable: true })
+  ratings: RatingDoctor[];
 
   // Method for encrypting the password before inserting it into the database
   @BeforeInsert()

@@ -3,7 +3,8 @@ import {
   createNewDoctor,
   getDoctorById,
   getDoctorFilter,
-  getDoctorsByName
+  getDoctorsByName,
+  ratingDoctor
 } from "@services/doctor";
 import { Context } from "@/utils/constants";
 import { Doctor } from "@/databases/postgresql/entities/models";
@@ -20,9 +21,10 @@ class DoctorResolver {
   async createNewDoctor(
     @Ctx() ctx: Context,
     @Arg("country", { nullable: true }) country?: string,
-    @Arg("province", { nullable: true }) province?: string
+    @Arg("province", { nullable: true }) province?: string,
+    @Arg("description", { nullable: true }) description?: string
   ) {
-    const response = await createNewDoctor(ctx.auth.userId, country, province);
+    const response = await createNewDoctor(ctx.auth.userId, country, province, description);
     return response;
   }
 
@@ -126,6 +128,13 @@ class DoctorResolver {
       skip: offset ?? 0,
       relations: ["user", "surgeries"] // Agregando las relaciones
     });
+    return response;
+  }
+
+  @Authorized()
+  @Mutation(() => Boolean)
+  async ratingDoctor(@Ctx() ctx: Context, @Arg("doctorId") doctorId: string) {
+    const response = await ratingDoctor(doctorId, ctx.auth.userId);
     return response;
   }
 
