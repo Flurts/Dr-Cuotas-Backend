@@ -20,7 +20,7 @@ import { Status } from "@/utils/constants/status.enum";
 import { Adjudicated, Doctor, File_DB } from ".";
 import Social_Media from "./Social_Media";
 import Transaction from "./transacctions";
-import RatingDoctor from "./ratingDoctor";
+import RatingDoctor from "./RatingDoctor";
 
 // User entity
 @ObjectType()

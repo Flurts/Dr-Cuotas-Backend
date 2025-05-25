@@ -13,7 +13,7 @@ import SurgeryDoctor from "./SurgeryDoctor";
 import Evidence from "./Evidence";
 import Transaction from "./transacctions";
 import CodeReference from "./Code_Reference";
-import RatingDoctor from "./ratingDoctor";
+import RatingDoctor from "./RatingDoctor";
 
 export {
   User,
