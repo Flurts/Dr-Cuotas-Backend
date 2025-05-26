@@ -10,8 +10,8 @@ WORKDIR /app
 # Copia los archivos de dependencias
 COPY package*.json ./
 
-# Instala las dependencias
-RUN npm ci --only=production && npm cache clean --force
+# Instala todas las dependencias (incluyendo devDependencies para build)
+RUN npm ci && npm cache clean --force
 
 # Stage para desarrollo
 FROM base AS development
@@ -29,8 +29,8 @@ RUN npm run build
 # Stage para producción
 FROM node:18-alpine AS production
 
-# Instala PM2 globalmente
-RUN npm install -g pm2
+# Instala las dependencias del sistema necesarias para TypeORM
+RUN apk add --no-cache python3 make g++
 
 # Crea un usuario no-root
 RUN addgroup -g 1001 -S nodejs
@@ -39,15 +39,14 @@ RUN adduser -S nodejs -u 1001
 # Establece el directorio de trabajo
 WORKDIR /app
 
-# Copia las dependencias de producción desde base
-COPY --from=base /app/node_modules ./node_modules
-COPY --from=base /app/package*.json ./
+# Copia el package.json e instala TODAS las dependencias (incluyendo dev) para ts-node-dev
+COPY package*.json ./
+RUN npm ci && npm cache clean --force
 
 # Copia el código compilado desde build
 COPY --from=build /app/dist ./dist
 
 # Copia archivos de configuración necesarios
-COPY --from=build /app/ecosystem.json* ./
 COPY --from=build /app/tsconfig.json ./
 
 # Copia el directorio src para las migraciones y configuración de TypeORM
@@ -60,5 +59,5 @@ USER nodejs
 # Expone el puerto de la aplicación
 EXPOSE 4000
 
-# Comando por defecto para producción
-CMD ["npm", "run", "start:prod"]
+# Comando que ejecuta migraciones y luego inicia la aplicación en modo desarrollo
+CMD ["sh", "-c", "npm run run-migrations && npm run dev"]
