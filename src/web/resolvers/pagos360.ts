@@ -4,6 +4,7 @@ import { getUserData } from "@services/user";
 import { TransacctionsRepository, AdjudicatedRepository } from "@/databases/postgresql/repos";
 import { TransactionStatus } from "@/databases/postgresql/entities/models/transacctions";
 import { Adjudicated_Status } from "@/utils/constants/status.enum";
+import { randomUUID } from "crypto";
 
 // Create an InputType for the Payment interface
 @InputType()
@@ -63,12 +64,11 @@ export default class Pagos360Resolver {
     }
 
     const userData = await getUserData(ctx.auth.userId);
+    const externalId = randomUUID();
     const transactionRepository = TransacctionsRepository;
     const formatDate = (date: string) => {
       return date.split("-").reverse().join("-");
     };
-
-    const externalId = crypto.randomUUID();
 
     const newTransaction = transactionRepository.create({
       id: externalId,
