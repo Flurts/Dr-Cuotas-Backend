@@ -60,4 +60,4 @@ USER nodejs
 EXPOSE 4000
 
 # Comando que ejecuta migraciones y luego inicia la aplicación en modo desarrollo
-CMD ["sh", "-c", "npm run run-migrations && npm run dev"]
+CMD ["sh", "-c", "npm run dev"]
