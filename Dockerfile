@@ -50,6 +50,9 @@ COPY --from=build /app/dist ./dist
 COPY --from=build /app/ecosystem.json* ./
 COPY --from=build /app/tsconfig.json ./
 
+# Copia el directorio src para las migraciones y configuración de TypeORM
+COPY --from=build /app/src ./src
+
 # Cambia el propietario de los archivos al usuario nodejs
 RUN chown -R nodejs:nodejs /app
 USER nodejs
