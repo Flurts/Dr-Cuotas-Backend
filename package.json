@@ -7,7 +7,7 @@
     "dev": "ts-node-dev -r tsconfig-paths/register --respawn --ignore-watch node_modules ./src/index.ts",
     "build": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./dist",
     "start:dev": "npm run build && node -r tsconfig-paths/register ./dist/index.js",
-    "start:prod": "npm run build && npm run run-migrations && pm2 startOrRestart ecosystem.json",
+    "start:prod": "node -r tsconfig-paths/register ./dist/index.js",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js -d ./src/databases/postgresql/config.ts",
     "run-migrations": "npm run typeorm migration:run",
     "gen-migration": "npm run typeorm migration:generate ./src/databases/postgresql/migrations/backendMigration",
