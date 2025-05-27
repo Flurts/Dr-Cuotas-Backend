@@ -4,16 +4,31 @@ import { Gender } from "@/utils/constants/gender.enum";
 import { Role } from "@/utils/constants/role.enum";
 import { SocialMedia, Status } from "@/utils/constants/status.enum";
 import phoneOrEmail from "@/utils/phoneOrEmail";
-import {
-  PresignedUrlResponse,
-  UpdateProfileImageResponse,
-  UserDataResponseSingInUp
-} from "@/utils/types/user";
+import { PresignedUrlResponse, UserDataResponseSingInUp } from "@/utils/types/user";
 import bcrypt from "bcrypt";
-import AwsS3Service from "@/services/AWS/s3";
 import { UserRepository, SocialMediaRepository } from "@/databases/postgresql/repos";
 import { verifyGoogleToken } from "@/services/JWT/google_jwt";
-import { randomBytes } from "crypto";
+import { randomBytes, randomUUID } from "crypto";
+import { uploadImageToS3 } from "@/utils/upImagesS3";
+
+const isBase64Image = (image: string): boolean => {
+  return typeof image === "string" && image.startsWith("data:image/");
+};
+
+/**
+ * Sube una imagen a S3 si es base64, si no la devuelve tal cual.
+ */
+const handleImageUpload = async (image: string, prefix: string): Promise<string> => {
+  if (isBase64Image(image)) {
+    const fileName = `${prefix}_${Date.now()}_${randomUUID()}`;
+    const uploadedUrl = await uploadImageToS3(image, fileName);
+    if (!uploadedUrl) {
+      throw new Error("Failed to upload image to S3");
+    }
+    return uploadedUrl;
+  }
+  return image; // Ya es una URL
+};
 
 export const login = async (
   phoneEmail: string,
@@ -201,69 +216,23 @@ export const getUserData = async (userId: string): Promise<UserDataResponseSingI
   };
 };
 
-export const updateProfileImage = async (
-  profileImage: string,
-  userId: string
-): Promise<UpdateProfileImageResponse> => {
+export const updateProfileImage = async (userId: string, base64Image: string) => {
   try {
     const user = await UserRepository.findOneBy({ id: userId });
+    if (!user) throw new Error("User not found");
 
-    if (!user) {
-      return {
-        status: false,
-        profile_picture: null
-      };
-    }
+    const fileName = `profile_${userId}_${Date.now()}`;
+    const imageUrl = await handleImageUpload(base64Image, fileName);
 
-    if (user.profile_picture !== null && user.profile_picture_key !== null) {
-      // const changeImage = await AwsS3Service.replaceImageInS3Buffer(
-      //   profileImage,
-      //   user.id,
-      //   "profile-images",
-      //   user.profile_picture_key
-      // );
+    user.profile_picture = imageUrl;
+    await UserRepository.save(user);
 
-      // if (changeImage) {
-      //   await UserRepository.update(user.id, {
-      //     profile_picture: changeImage.Location,
-      //     profile_picture_key: changeImage.Key
-      //   });
-      // }
-
-      return {
-        status: true,
-        // profile_picture: changeImage ? changeImage.Location : null
-        profile_picture: user.profile_picture
-      };
-    } else {
-      // const uploadImage = await AwsS3Service.uploadImageToS3Buffer(
-      //   profileImage,
-      //   user.id,
-      //   "profile-images"
-      // );
-
-      // if (uploadImage) {
-      //   await UserRepository.update(user.id, {
-      //     profile_picture: uploadImage.Location,
-      //     profile_picture_key: uploadImage.Key
-      //   });
-      // }
-
-      return {
-        status: true,
-        // profile_picture: uploadImage ? uploadImage.Location : null
-        profile_picture: user.profile_picture
-      };
-    }
+    return { success: true, profile_picture: imageUrl };
   } catch (error) {
-    console.error("Error updating user profile image:", error);
-    return {
-      status: false,
-      profile_picture: null
-    };
+    console.error("Error updating profile image:", error);
+    return { success: false, message: "Failed to update profile image" };
   }
 };
-
 export const generatePresignedUrlImage = async (
   fileType: string,
   userId: string

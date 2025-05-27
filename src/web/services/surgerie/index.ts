@@ -5,8 +5,6 @@ import {
   SurgeryDoctorRepository
 } from "@/databases/postgresql/repos";
 import { Context } from "@/utils/constants";
-import { Status } from "@/utils/constants/status.enum";
-import AwsS3Service from "@/services/AWS/s3";
 import { SurgeryInput } from "@/utils/types/Surgery";
 import { File_Type } from "@/utils/constants/file_type.enum";
 import {
@@ -16,6 +14,27 @@ import {
 } from "@/utils/constants/surgery.enum";
 import { PresignedUrlResponse } from "@/utils/types/user";
 import { File_DB } from "@/databases/postgresql/entities/models";
+import { randomUUID } from "crypto";
+import { uploadImageToS3 } from "@/utils/upImagesS3";
+
+const isBase64Image = (image: string): boolean => {
+  return typeof image === "string" && image.startsWith("data:image/");
+};
+
+/**
+ * Sube una imagen a S3 si es base64, si no la devuelve tal cual.
+ */
+const handleImageUpload = async (image: string, prefix: string): Promise<string> => {
+  if (isBase64Image(image)) {
+    const fileName = `${prefix}_${Date.now()}_${randomUUID()}`;
+    const uploadedUrl = await uploadImageToS3(image, fileName);
+    if (!uploadedUrl) {
+      throw new Error("Failed to upload image to S3");
+    }
+    return uploadedUrl;
+  }
+  return image; // Ya es una URL
+};
 
 export const generatePresignedUrlImageSurgery = async (
   fileType: string,
@@ -54,12 +73,19 @@ export const createNewSurgerie = async (surgery: SurgeryInput, ctx: Context): Pr
       throw new Error("User is not a doctor");
     }
 
+    // Subir imagen a S3
+    const externalId = randomUUID();
+    const uploadedImageUrl = await handleImageUpload(
+      surgery.surgeryImage ?? "", // Asumiendo que recibes la imagen como base64
+      `surgery_${user.doctor.id}_${externalId}`
+    );
+
     // Crear el archivo asociado a la cirugía
     const newFile = FileRepository.create({
       file_name: user.doctor.id,
       file_type: File_Type.SURGERY_PHOTOS,
-      file_link: surgery.surgeryImageLocation ?? "",
-      file_key: surgery.surgeryImageKey ?? ""
+      file_link: uploadedImageUrl,
+      file_key: `surgery_${user.doctor.id}_${externalId}`
     });
     await FileRepository.save(newFile);
 

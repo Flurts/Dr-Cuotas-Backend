@@ -19,6 +19,9 @@ import { Gender } from "@/utils/constants/gender.enum";
 import { Context } from "@/utils/constants";
 import { SocialMediaInput } from "@/utils/types/settings";
 import { SocialMediaRepository, UserRepository } from "@/databases/postgresql/repos";
+import { uploadImageToS3 } from "@/utils/upImagesS3";
+import { randomUUID } from "crypto";
+
 // import { File_Type } from "@/utils/constants/file_type.enum";
 
 @Resolver()
@@ -73,15 +76,25 @@ class UserResolver {
     return response;
   }
 
-  // Update User Profile Image
   @Authorized()
   @Mutation(() => UpdateProfileImageResponse)
   async updateUserProfileImage(
     @Arg("profile_image") profileImage: string,
     @Ctx() ctx: Context
   ): Promise<UpdateProfileImageResponse> {
-    const response = await updateProfileImage(profileImage, ctx.auth.userId);
-    return response;
+    try {
+      const fileName = `user-${ctx.auth.userId}-${randomUUID()}`;
+      const imageUrl = await uploadImageToS3(profileImage, fileName);
+      const response = await updateProfileImage(ctx.auth.userId, imageUrl);
+
+      return {
+        status: response.success,
+        profile_picture: response.profile_picture ?? null
+      };
+    } catch (error) {
+      console.error("Error updating user profile image:", error);
+      throw new Error("No se pudo actualizar la imagen de perfil");
+    }
   }
 
   @Authorized()

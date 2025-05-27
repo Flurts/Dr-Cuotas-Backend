@@ -35,7 +35,7 @@ const config = {
     ses: {
       apiVersion: process.env.AWS_SES_API_VERSION ?? "2010-12-01"
     },
-    bucketName: process.env.AWS_BUCKET_NAME ?? "",
+    bucketName: process.env.AWS_BUCKET ?? "",
     awsEmail: process.env.AWS_EMAIL_FROM ?? ""
   },
   google: {
