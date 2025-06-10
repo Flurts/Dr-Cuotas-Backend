@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/return-await */
 import { Arg, Authorized, Ctx, Int, Mutation, Query, Resolver } from "type-graphql";
 import {
   createNewDoctor,
   getDoctorById,
   getDoctorFilter,
   getDoctorsByName,
-  ratingDoctor
+  ratingDoctor,
+  getCountDoctorRatings
 } from "@services/doctor";
 import { Context } from "@/utils/constants";
 import { Doctor } from "@/databases/postgresql/entities/models";
@@ -146,6 +148,11 @@ class DoctorResolver {
   ) {
     const response = await getDoctorsByName({ limit: limit ?? 6, offset: offset ?? 0, name });
     return response;
+  }
+
+  @Query(() => Int)
+  async getCountDoctorRatings(@Arg("doctorId") doctorId: string): Promise<number> {
+    return await getCountDoctorRatings(doctorId);
   }
 }
 

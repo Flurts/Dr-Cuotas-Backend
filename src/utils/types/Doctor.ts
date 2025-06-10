@@ -11,4 +11,8 @@ export class DoctorBasicData {
 
   @Field(() => File_DB, { nullable: true }) // Aquí especificamos que el campo puede ser null
   curriculum: File_DB | null;
+
+  @Field(() => Number, { nullable: true })
+  ratingsCount?: number; // Aquí especificamos que el campo puede ser undefined
+  // Aquí especificamos que el campo puede ser null
 }

@@ -12,9 +12,10 @@ class TransactionResolver {
   @Mutation(() => Transaction, { nullable: true })
   async createTransaction(
     @Ctx() ctx: Context,
-    @Arg("adjudicatedId") adjudicatedId: string
+    @Arg("adjudicatedId") adjudicatedId: string,
+    @Arg("amount", () => Number, { defaultValue: 0 }) amount: number
   ): Promise<Transaction | null> {
-    return await createTransaction(ctx.auth.userId, adjudicatedId);
+    return await createTransaction(ctx.auth.userId, adjudicatedId, amount);
   }
 
   @Authorized()

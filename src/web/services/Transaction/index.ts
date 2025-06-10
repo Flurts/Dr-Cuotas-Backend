@@ -8,67 +8,89 @@ import Transaction, {
 } from "@/databases/postgresql/entities/models/transacctions";
 import { Adjudicated_Status } from "@/utils/constants/status.enum"; // Update import path to match your code
 
-export async function updateTransactionStatus(id: string, status: string): Promise<boolean> {
-  const transactionRepository = TransacctionsRepository;
-  const adjudicatedRepository = AdjudicatedRepository;
+export async function updateTransactionStatus(
+  transactionId: string,
+  status: string
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+): Promise<boolean> {
+  try {
+    console.log("=== INICIO DE ACTUALIZACIÓN ===");
+    console.log(`📌 Transaction ID: ${transactionId}`);
+    console.log(`📌 Status recibido: ${status}`);
 
-  const transaction = await transactionRepository.findOne({ where: { id } });
-  if (!transaction) {
-    throw new Error("Transacción no encontrada");
-  }
-
-  if (transaction.AdjudicadosId) {
-    let adjudicated = await adjudicatedRepository.findOne({
-      where: { id: transaction.AdjudicadosId }
+    // 2. Buscar la transacción
+    const transaction = await TransacctionsRepository.findOne({
+      where: { id: transactionId }
     });
 
-    if (!adjudicated) {
-      // Create a new entity with the required fields
-      adjudicated = adjudicatedRepository.create();
-      adjudicated.id = transaction.AdjudicadosId;
-      adjudicated.quotas_paid = status === "paid" ? 1 : 0;
-      adjudicated.adjudicated_status =
-        status === "paid" ? Adjudicated_Status.Active : Adjudicated_Status.Rejected;
-    } else {
-      adjudicated.quotas_paid = status === "paid" ? (adjudicated.quotas_paid ?? 0) + 1 : 0;
-      adjudicated.adjudicated_status =
-        status === "paid" ? Adjudicated_Status.Active : Adjudicated_Status.Rejected;
+    if (!transaction) {
+      throw new Error(`Transacción no encontrada (ID: ${transactionId})`);
     }
 
-    await adjudicatedRepository.save(adjudicated);
+    console.log(`✅ Transacción encontrada | AdjudicadosId: ${transaction.AdjudicadosId}`);
 
-    // Rest of your code remains the same
-    const adjudicatedUser = await adjudicatedRepository.findOne({
-      where: { id: transaction.AdjudicadosId }
-    });
-    if (adjudicatedUser?.user) {
-      const userId = adjudicatedUser.user;
-
-      const userAdjudicateds = await adjudicatedRepository.find({
-        where: { user: userId },
-        order: { created_at: "ASC" }
+    // 3. Procesar solo si hay un AdjudicadosId
+    if (transaction.AdjudicadosId) {
+      const adjudicated = await AdjudicatedRepository.findOne({
+        where: { id: transaction.AdjudicadosId }
       });
 
-      const oldAdjudicated = userAdjudicateds.find((ad) => !ad.quotas_paid || ad.quotas_paid === 0);
-      if (oldAdjudicated) {
-        await adjudicatedRepository.remove(oldAdjudicated);
+      if (!adjudicated) {
+        throw new Error(`Adjudicado no encontrado (ID: ${transaction.AdjudicadosId})`);
       }
+
+      console.log(
+        `💰 quota_price del adjudicado: ${adjudicated.quota_price} (Tipo: ${typeof adjudicated.quota_price})`
+      );
+
+      // 4. Validar quota_price
+      if (!adjudicated.quota_price || adjudicated.quota_price <= 0) {
+        throw new Error(`quota_price inválido: ${adjudicated.quota_price}`);
+      }
+
+      // 5. Calcular cuotas (solo para status = "paid")
+      if (status === "paid") {
+        if (transaction.amount === undefined) {
+          throw new Error("El monto de la transacción (amount) es undefined");
+        }
+        const cuotasAPagar = Math.floor(transaction.amount / adjudicated.quota_price);
+        const cuotasActuales = adjudicated.quotas_paid ?? 0;
+        const nuevasCuotas = cuotasActuales + cuotasAPagar;
+
+        console.log("=== CÁLCULO DE CUOTAS ===");
+        console.log(`🔢 quota_price: ${adjudicated.quota_price}`);
+        console.log(`💵 Monto de la transacción: ${transaction.amount}`);
+        console.log(`➗ División: ${transaction.amount / adjudicated.quota_price}`);
+        console.log(`🔽 Math.floor(): ${cuotasAPagar}`);
+        console.log(`📊 Cuotas actuales: ${cuotasActuales}`);
+        console.log(`✨ Nuevo total (cuotas_paid): ${nuevasCuotas}`);
+
+        adjudicated.quotas_paid = nuevasCuotas;
+        adjudicated.adjudicated_status = Adjudicated_Status.Active;
+      } else {
+        adjudicated.adjudicated_status = Adjudicated_Status.Rejected;
+      }
+
+      await AdjudicatedRepository.save(adjudicated);
+      console.log("✅ Adjudicado actualizado");
     }
-  }
 
-  if (status === "paid") {
-    transaction.status = TransactionStatus.SUCCESS;
-  } else if (status === "rejected") {
-    transaction.status = TransactionStatus.REJECTED;
-  }
+    // 6. Actualizar estado de la transacción
+    transaction.status = status === "paid" ? TransactionStatus.SUCCESS : TransactionStatus.REJECTED;
+    await TransacctionsRepository.save(transaction);
+    console.log("✅ Transacción actualizada");
 
-  await transactionRepository.save(transaction);
-  return true;
+    return true;
+  } catch (error) {
+    console.error("❌ Error en updateTransactionStatus:", error);
+    throw error;
+  }
 }
 
 export const createTransaction = async (
   userId: string,
-  adjudicatedId: string
+  adjudicatedId: string,
+  amount: number
 ): Promise<Transaction | null> => {
   const userRepository = UserRepository; // Assuming you have a UserRepository similar to other repositories
   const transactionRepository = TransacctionsRepository;
@@ -83,7 +105,8 @@ export const createTransaction = async (
     user,
     status: TransactionStatus.PENDING,
     AdjudicadosId: adjudicatedId,
-    externalId: `${randomUUID}-Transaction`
+    externalId: `${randomUUID}-Transaction`,
+    amount
   });
 
   await transactionRepository.save(transaction);

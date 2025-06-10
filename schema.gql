@@ -79,6 +79,7 @@ type Doctor {
 type DoctorBasicData {
   curriculum: File_DB
   doctor: Doctor
+  ratingsCount: Float
   status: Boolean!
 }
 
@@ -149,7 +150,7 @@ type Mutation {
   createNewDoctor(country: String, description: String, province: String): Doctor!
   createNewSurgerie(surgery: SurgeryInput!): Boolean!
   createPaymentRequest(data: PaymentInput!): String!
-  createTransaction(adjudicatedId: String!): Transaction
+  createTransaction(adjudicatedId: String!, amount: Float! = 0): Transaction
   deleteAdMutation(id: String!): Boolean!
   deleteEvidence(id: String!): Boolean!
   deleteSurgeries(surgeriesId: [String!]!): Boolean!
@@ -182,6 +183,7 @@ type Mutation {
 
 input PaymentInput {
   adjudicadosId: String
+  amount: Float
   back_url_pending: String
   back_url_rejected: String
   back_url_success: String
@@ -213,6 +215,7 @@ type Query {
   getAllAdjudicated: [Adjudicated!]!
   getAllSurgeriesWithValues(limit: Float = 8, offset: Float = 0): [Surgery!]!
   getCodeReferences: [CodeReference!]!
+  getCountDoctorRatings(doctorId: String!): Int!
   getDoctor(doctorId: String!): DoctorBasicData!
   getDoctorByStatus(limit: Int, offset: Int, status: String!): [Doctor!]!
   getDoctorFilter(limit: Int, offset: Int): [Doctor!]!
@@ -377,6 +380,7 @@ enum SurgeryTypes {
 
 type Transaction {
   AdjudicadosId: String
+  amount: Float
   created_at: DateTimeISO!
   externalId: String!
   id: ID!

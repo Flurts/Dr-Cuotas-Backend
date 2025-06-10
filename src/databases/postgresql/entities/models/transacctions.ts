@@ -34,6 +34,16 @@ class Transaction {
   @Column({ type: "varchar", length: 255, unique: true })
   externalId: string;
 
+  @Field(() => Number, { nullable: true }) // <- GraphQL nullable
+  @Column({
+    type: "decimal",
+    precision: 10,
+    scale: 2,
+    nullable: true, // <- PostgreSQL nullable
+    default: 0 // Valor por defecto para registros existentes
+  })
+  amount?: number;
+
   @Field(() => String, { nullable: true })
   @Column({ type: "varchar", length: 255, nullable: true }) // Debe incluir `nullable: true`
   AdjudicadosId?: string | null;

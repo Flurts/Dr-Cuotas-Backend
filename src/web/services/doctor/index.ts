@@ -77,22 +77,32 @@ export const getDoctorById = async (doctorId: string): Promise<DoctorBasicData> 
       }
     });
 
-    if (!doctor) {
+    if (!doctor?.user) {
       return {
         status: false,
         doctor: null,
-        curriculum: null
+        curriculum: null,
+        ratingsCount: 0
       };
     }
 
     const curriculum = await FileRepository.findOne({
-      where: { user: { id: doctor.user?.id }, file_type: File_Type.CURRICULUM_VITAE }
+      where: {
+        user: { id: doctor.user.id },
+        file_type: File_Type.CURRICULUM_VITAE
+      }
+    });
+
+    // ✅ Obtener cuántas personas han calificado a este doctor usando el doctorId directamente
+    const ratingsCount = await RatingDoctorRepository.count({
+      where: { doctorId }
     });
 
     return {
       status: true,
       doctor,
-      curriculum
+      curriculum,
+      ratingsCount
     };
   } catch (error) {
     console.error("Error fetching doctor by id:", error);
@@ -164,5 +174,18 @@ export const getDoctorFilter = async (filter: {
   } catch (error) {
     console.error("Error fetching doctors:", error);
     throw error;
+  }
+};
+
+export const getCountDoctorRatings = async (doctorId: string): Promise<number> => {
+  try {
+    const count = await RatingDoctorRepository.count({
+      where: { doctorId }
+    });
+
+    return count;
+  } catch (error) {
+    console.error("Error al contar calificaciones del doctor:", error);
+    return 0;
   }
 };

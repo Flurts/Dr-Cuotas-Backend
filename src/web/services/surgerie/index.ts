@@ -73,23 +73,7 @@ export const createNewSurgerie = async (surgery: SurgeryInput, ctx: Context): Pr
       throw new Error("User is not a doctor");
     }
 
-    // Subir imagen a S3
-    const externalId = randomUUID();
-    const uploadedImageUrl = await handleImageUpload(
-      surgery.surgeryImage ?? "", // Asumiendo que recibes la imagen como base64
-      `surgery_${user.doctor.id}_${externalId}`
-    );
-
-    // Crear el archivo asociado a la cirugía
-    const newFile = FileRepository.create({
-      file_name: user.doctor.id,
-      file_type: File_Type.SURGERY_PHOTOS,
-      file_link: uploadedImageUrl,
-      file_key: `surgery_${user.doctor.id}_${externalId}`
-    });
-    await FileRepository.save(newFile);
-
-    // Crear la cirugía
+    // Crear primero la cirugía (sin file_banner aún)
     const newSurgerie = SurgeryRepository.create({
       name: surgery.name,
       description: surgery.description,
@@ -97,10 +81,30 @@ export const createNewSurgerie = async (surgery: SurgeryInput, ctx: Context): Pr
       type: SurgeryTypes[surgery.type as keyof typeof SurgeryTypes],
       category: SurgeryCategories[surgery.category as keyof typeof SurgeryCategories],
       subcategory: SubSurgeryCategories[surgery.subcategory as keyof typeof SubSurgeryCategories],
-      status: surgery.status,
-      file_banner: newFile
+      status: surgery.status
     });
 
+    await SurgeryRepository.save(newSurgerie); // Obtenemos el ID aquí
+
+    // Subir imagen a S3
+    const externalId = randomUUID();
+    const uploadedImageUrl = await handleImageUpload(
+      surgery.surgeryImage ?? "",
+      `surgery_${user.doctor.id}_${externalId}`
+    );
+
+    // Crear el archivo con la relación a la cirugía
+    const newFile = FileRepository.create({
+      file_name: user.doctor.id,
+      file_type: File_Type.SURGERY_PHOTOS,
+      file_link: uploadedImageUrl,
+      file_key: `surgery_${user.doctor.id}_${externalId}`,
+      surgery: newSurgerie // Aquí se asocia el archivo con la cirugía
+    });
+    await FileRepository.save(newFile);
+
+    // Actualizar la cirugía con el banner (relación al archivo)
+    newSurgerie.file_banner = newFile;
     await SurgeryRepository.save(newSurgerie);
 
     // Relacionar la cirugía con el doctor
